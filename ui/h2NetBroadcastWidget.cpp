@@ -7,7 +7,7 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QLabel>
 
-#include "carbonuiclass.h"
+#include "CarbonUIClass.h"
 #include "groupboxcollapser.h"
 
 #include "h2sdk.h"

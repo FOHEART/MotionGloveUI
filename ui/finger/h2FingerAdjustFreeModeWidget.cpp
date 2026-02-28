@@ -1,7 +1,7 @@
 ﻿//#include "stdafx.h"
 #pragma execution_character_set("utf-8")
 #include "h2FingerAdjustFreeModeWidget.h"
-#include "carbonuiclass.h"
+#include "CarbonUIClass.h"
 #include "groupboxcollapser.h"
 #ifdef _WIN32
 #include <windows.h>

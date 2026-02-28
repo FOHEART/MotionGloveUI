@@ -1,13 +1,12 @@
-﻿
-#if defined(_MSC_VER) && (_MSC_VER >= 1600)
+﻿#if defined(_MSC_VER) && (_MSC_VER >= 1600)
 #pragma execution_character_set("utf-8")
 #endif
 
 #include "../../include/libH2SteamDriverUI.h"
-#include "ui_libH2SteamDriverUI.h"
 #include <QtWidgets/QMessageBox>
 #include <QtGui/QDesktopServices>
 #ifdef _WIN32
+#include "ui_libH2SteamDriverUI.h"
 #include "libH2SteamDriver.h"
 
 libH2SteamDriverUI::libH2SteamDriverUI(QWidget* parent)
@@ -28,7 +27,7 @@ libH2SteamDriverUI::libH2SteamDriverUI(QWidget* parent)
 	checkInstallation();
 	QObject::connect(ui->CBX_steamVRDriverEnable, SIGNAL(toggled(bool)), this, SLOT(onCheck_CBX_steamVRDriverEnable(bool)));
 #ifdef _WIN32
-if (libH2SteamDriver_getSteamVR_GloveDriverEnabled())
+	if (libH2SteamDriver_getSteamVR_GloveDriverEnabled())
 	{
 		ui->CBX_steamVRDriverEnable->setChecked(true);
 	}
@@ -39,7 +38,7 @@ if (libH2SteamDriver_getSteamVR_GloveDriverEnabled())
 #else
 
 #endif
-	
+
 
 
 }
@@ -98,7 +97,7 @@ void libH2SteamDriverUI::checkInstallation(void)
 		ui->LBL_steamVRDriverInstalled->setStyleSheet(lbl_red_styleSheet);
 		ui->LBL_steamVRDriverInstalled->setText(QString::fromUtf8("未安装"));
 	}
-	///
+	///Muologo
 
 	char steamInstallDir[260] = { 0 };
 	if (0 == libH2SteamDriver_get_SteamInstallDir(steamInstallDir))

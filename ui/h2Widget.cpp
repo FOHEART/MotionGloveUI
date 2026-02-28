@@ -24,7 +24,7 @@
 #include "../inc/h2UnityWindowMgr.h"
 #include <QButtonGroup>
 
-#include "carbonuiclass.h"
+#include "CarbonUIClass.h"
 #include "groupboxcollapser.h"
 
 #ifdef _WIN32

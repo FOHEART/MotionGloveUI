@@ -3,7 +3,7 @@
 #include "h2sdk.h"
 #include "ui_h2StreamConfigWidget.h"
 
-#include "carbonuiclass.h"
+#include "CarbonUIClass.h"
 #include "groupboxcollapser.h"
 
 

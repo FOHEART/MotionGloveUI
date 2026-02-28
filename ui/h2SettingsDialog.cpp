@@ -2,7 +2,7 @@
 #include "ui_h2SettingsDialog.h"
 #include "h2NetBroadcastWidget.h"
 #include "../include/h2StreamConfigWidget.h"
-#include "carbonuiclass.h"
+#include "CarbonUIClass.h"
 #include "groupboxcollapser.h"
 
 h2SettingsDialog::h2SettingsDialog(QWidget *parent)
