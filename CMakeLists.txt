@@ -63,22 +63,58 @@ include(cmake/skipAutoMoc.cmake)
 # Ensure Qt5 imported targets are available for linking
 find_package(Qt5 REQUIRED COMPONENTS Core Network Gui Widgets Multimedia MultimediaWidgets)
 
+# GitHub Actions runners typically do not have an SSH deploy key configured.
+# Default to HTTPS cloning and allow opting into SSH with -DXSTYPES_FETCH_VIA_SSH=ON.
+# GitHub Actions 运行环境通常未配置 SSH Deploy Key。
+# 默认使用 HTTPS 拉取；可通过 -DXSTYPES_FETCH_VIA_SSH=ON 切换为 SSH。
+option(XSTYPES_FETCH_VIA_SSH "Fetch xstypes_x via SSH (requires configured SSH key)" OFF)
+if (XSTYPES_FETCH_VIA_SSH)
+  set(CARBONUI_GIT_REPOSITORY "git@github.com:FOHEART/CarbonUI.git")
+  set(H2SDK_GIT_REPOSITORY "git@github.com:FOHEART/h2sdk.git")
+  set(GLOVESTEAMDRIVER_GIT_REPOSITORY "git@github.com:FOHEART/GloveSteamDriver.git")
+else()
+  set(CARBONUI_GIT_REPOSITORY "https://github.com/FOHEART/CarbonUI.git")
+  set(H2SDK_GIT_REPOSITORY "https://github.com/FOHEART/h2sdk.git")
+  set(GLOVESTEAMDRIVER_GIT_REPOSITORY "https://github.com/FOHEART/GloveSteamDriver.git")
+endif()
 
 CPMAddPackage(
     NAME CarbonUI
-    GITHUB_REPOSITORY FOHEART/CarbonUI
-    GIT_TAG main)
+    GIT_REPOSITORY ${CARBONUI_GIT_REPOSITORY}
+    GIT_TAG main
+     # Prevent update attempts that require deleting the existing source dir.
+    # This improves reliability on Windows/CI where files can be temporarily locked.
+    # 防止更新时尝试删除现有源码目录。
+    # 这可提升 Windows/CI 环境可靠性（文件可能被临时锁定）。
+    # Prevent update attempts that require deleting the existing source dir.
+    # This improves reliability on Windows/CI where files can be temporarily locked.
+    UPDATE_DISCONNECTED 1)
 
 CPMAddPackage(
     NAME h2sdk
-    GITHUB_REPOSITORY FOHEART/h2sdk
-    GIT_TAG main)
+    GIT_REPOSITORY ${H2SDK_GIT_REPOSITORY}
+    GIT_TAG main
+     # Prevent update attempts that require deleting the existing source dir.
+    # This improves reliability on Windows/CI where files can be temporarily locked.
+    # 防止更新时尝试删除现有源码目录。
+    # 这可提升 Windows/CI 环境可靠性（文件可能被临时锁定）。
+    # Prevent update attempts that require deleting the existing source dir.
+    # This improves reliability on Windows/CI where files can be temporarily locked.
+    UPDATE_DISCONNECTED 1)
 
 if(WIN32)
   CPMAddPackage(
       NAME GloveSteamDriver
-      GITHUB_REPOSITORY FOHEART/GloveSteamDriver
-      GIT_TAG main)
+      GIT_REPOSITORY ${GLOVESTEAMDRIVER_GIT_REPOSITORY}
+    GIT_TAG main
+  
+     # Prevent update attempts that require deleting the existing source dir.
+    # This improves reliability on Windows/CI where files can be temporarily locked.
+    # 防止更新时尝试删除现有源码目录。
+    # 这可提升 Windows/CI 环境可靠性（文件可能被临时锁定）。
+    # Prevent update attempts that require deleting the existing source dir.
+    # This improves reliability on Windows/CI where files can be temporarily locked.
+    UPDATE_DISCONNECTED 1)
 endif()
 
 # Collect all sources from ./src and ./ui (including subfolders)
@@ -153,14 +189,14 @@ if(MSVC)
 target_compile_definitions(${PROJECT_NAME}
   PRIVATE
     UNICODE _WIN32 WIN64 QT_DLL  
-    #LIBH2UI_EXPORTS
+    LIBH2UI_EXPORTS
     $<$<CONFIG:Release>:QT_NO_DEBUG;NDEBUG>
 )
 else()
 target_compile_definitions(${PROJECT_NAME}
   PRIVATE
-    UNICODE  QT_DLL  
-    #LIBH2UI_EXPORTS
+    UNICODE QT_DLL  
+    LIBH2UI_EXPORTS
     $<$<CONFIG:Release>:QT_NO_DEBUG;NDEBUG>
 )
 endif()
@@ -266,7 +302,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 )
 # Link the CarbonUI target provided by CPM to the project executable
 target_link_libraries(${PROJECT_NAME} PRIVATE CarbonUI)
-target_link_libraries(${PROJECT_NAME} PRIVATE h2sdk::h2sdk)
+target_link_libraries(${PROJECT_NAME} PRIVATE h2sdk)
 
 if(WIN32)
   target_link_libraries(${PROJECT_NAME} PRIVATE GloveSteamDriver)
