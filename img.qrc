@@ -1,0 +1,32 @@
+<RCC>
+    <qresource prefix="/images">
+        <file>Resources/img/battery_unconnect.png</file>
+        <file>Resources/img/battery1.png</file>
+        <file>Resources/img/battery2.png</file>
+        <file>Resources/img/battery3.png</file>
+        <file>Resources/img/battery4.png</file>
+        <file>Resources/img/notusable.png</file>
+        <file>Resources/img/lefthand_offline.png</file>
+        <file>Resources/img/lefthand_online.png</file>
+        <file>Resources/img/righthand_offline.png</file>
+        <file>Resources/img/righthand_online.png</file>
+        <file>Resources/img/usblink.png</file>
+        <file>Resources/img/arrow_down.png</file>
+        <file>Resources/img/arrow_right.png</file>
+    </qresource>
+    <qresource prefix="/gestures">
+        <file>Resources/gesture/gesture_1_LH.png</file>
+        <file>Resources/gesture/gesture_1_RH.png</file>
+        <file>Resources/gesture/gesture_2_LH.png</file>
+        <file>Resources/gesture/gesture_2_RH.png</file>
+        <file>Resources/gesture/gesture_3_LH.png</file>
+        <file>Resources/gesture/gesture_3_RH.png</file>
+        <file>Resources/gesture/gesture_4_LH.png</file>
+        <file>Resources/gesture/gesture_4_RH.png</file>
+        <file>Resources/gesture/gesture_5_LH.png</file>
+        <file>Resources/gesture/gesture_5_RH.png</file>
+        <file>Resources/gesture/gesture_thumbUp_LH.png</file>
+        <file>Resources/gesture/gesture_thumbUp_RH.png</file>
+        <file>Resources/gesture/UndefinedGesture.png</file>
+    </qresource>
+</RCC>

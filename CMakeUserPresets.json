@@ -1,0 +1,94 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "Qt-Debug",
+      "inherits": "Qt-Default",
+      "binaryDir": "${sourceDir}/out/build/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_FLAGS": "-DQT_QML_DEBUG"
+      },
+      "environment": {
+        "QML_DEBUG_ARGS": "-qmljsdebugger=file:{82f6d648-13a0-4f7b-95bb-da4c63b322a9},block"
+      }
+    },
+    {
+      "name": "Qt-Release",
+      "inherits": "Qt-Default",
+      "binaryDir": "${sourceDir}/out/build/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "hidden": true,
+      "name": "Qt-Default",
+      "inherits": "QT515_64",
+      "vendor": {
+        "qt-project.org/Default": {
+          "checksum": "aDYgoSrKsIugDMmBzhyxFaw8OGY="
+        }
+      }
+    },
+    {
+      "hidden": true,
+      "name": "QT515_64",
+      "inherits": "Qt",
+      "environment": {
+        "QTDIR": "D:/Qt5.15.2/5.15.2/msvc2019_64"
+      },
+      "architecture": {
+        "strategy": "external",
+        "value": "x64"
+      },
+      "generator": "Ninja",
+      "vendor": {
+        "qt-project.org/Version": {
+          "checksum": "AuaMEFefuj+uW+JC8oNaaHDp56k="
+        }
+      }
+    },
+    {
+      "hidden": true,
+      "name": "QT580",
+      "inherits": "Qt",
+      "environment": {
+        "QTDIR": "D:/Qt5.15.2/5.15.2/msvc2019_64"
+      },
+      "architecture": {
+        "strategy": "external",
+        "value": "x86"
+      },
+      "generator": "Ninja",
+      "vendor": {
+        "qt-project.org/Version": {
+          "checksum": "AmbebEvN8uGZOFxjI7KEhuySnb8="
+        }
+      }
+    },
+    {
+      "hidden": true,
+      "name": "Qt6_583",
+      "inherits": "Qt",
+      "environment": {
+        "QTDIR": "D:/Qt5.15.2/5.15.2/msvc2019_64"
+      },
+      "architecture": {
+        "strategy": "external",
+        "value": "x64"
+      },
+      "generator": "Ninja",
+      "vendor": {
+        "qt-project.org/Version": {
+          "checksum": "qgLSb7GpXgp+LQ/eDZR+gbaRTMA="
+        }
+      }
+    }
+  ],
+  "vendor": {
+    "qt-project.org/Presets": {
+      "checksum": "hkar5sZnpKJP5tuhuQDmOaCfbTs="
+    }
+  }
+}
