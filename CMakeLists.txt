@@ -301,12 +301,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 )
 # Link the CarbonUI target provided by CPM to the project executable
 target_link_libraries(${PROJECT_NAME} PRIVATE CarbonUI)
-# Explicitly propagate CarbonUI's public include dirs (e.g. carbonuiclass.h, groupboxcollapser.h).
-# target_link_libraries transitively forwards INTERFACE_INCLUDE_DIRECTORIES, but in CPM
-# in-source builds the BUILD_INTERFACE path must be resolved explicitly on some generators.
-target_include_directories(${PROJECT_NAME} PRIVATE
-  $<TARGET_PROPERTY:CarbonUI,INTERFACE_INCLUDE_DIRECTORIES>
-)
+
 
 target_link_libraries(${PROJECT_NAME} PRIVATE h2sdk)
 
