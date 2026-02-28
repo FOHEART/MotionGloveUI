@@ -57,6 +57,7 @@ qt_standard_project_setup()
 # Restrict AUTOUIC to this project's UI files only.
 # Without this, AUTOUIC may scan headers from Qt/3rd-party includes (e.g. QtDesigner private headers)
 # and fail when it sees `#include "ui_*.h"` without the corresponding `.ui` file.
+set(CMAKE_AUTOUIC OFF)
 set(CMAKE_AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR}/ui")
 set(CMAKE_AUTOUIC_OPTIONS "--no-protection")
 set(CMAKE_AUTOUIC_RELAXED_MODE OFF)
@@ -118,7 +119,6 @@ file(GLOB_RECURSE PROJECT_HEADERS CONFIGURE_DEPENDS
 add_library(${PROJECT_NAME} SHARED
   ${PROJECT_SOURCES}
   ${PROJECT_QRC_FILES}
-  ${PROJECT_UI_FILES}
 )
 
 # Headers are kept for IDE visibility, but should not drive Qt's autogen scanning.
