@@ -23,9 +23,8 @@ jobs:
       #
       # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
       matrix:
-        os: [ windows-latest]
+        os: [windows-latest, ubuntu-latest]
         build_type: [Release]
-        #build_shared: [ON, OFF]
         c_compiler: [gcc,  cl]
         include:
           - os: windows-latest
@@ -119,6 +118,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y --no-install-recommends \
+          ninja-build \
           libgl1-mesa-dev \
           mesa-common-dev \
           libxkbcommon-x11-0 \
@@ -132,7 +132,9 @@ jobs:
           libxcb-sync1 \
           libxcb-xfixes0 \
           libxcb-xinerama0 \
-          libxcb-xkb1
+          libxcb-xkb1 \
+          libqt5multimedia5-dev \
+          qtmultimedia5-dev
 
     - name: Install Qt 5.15.2 (Windows only)
       if: matrix.os == 'windows-latest' && steps.qt-cache.outputs.cache-hit != 'true'
@@ -188,22 +190,20 @@ jobs:
       shell: bash
       run: |
         echo "Env dump (Qt-related):"
-        env | sort | grep -E '^(Qt|QT|CMAKE_PREFIX_PATH)'
+        env | sort | grep -E '^(Qt|QT|CMAKE_PREFIX_PATH)' || true
 
         SEARCH_ROOTS=()
         [ -n "${QT_CACHE_DIR}" ] && SEARCH_ROOTS+=("${QT_CACHE_DIR}")
-        [ -n "${Qt5_DIR}" ] && SEARCH_ROOTS+=("${Qt5_DIR}")
-        [ -n "${Qt5_ROOT}" ] && SEARCH_ROOTS+=("${Qt5_ROOT}")
-        [ -n "${QT_ROOT_DIR}" ] && SEARCH_ROOTS+=("${QT_ROOT_DIR}")
-        [ -n "${RUNNER_TEMP}" ] && SEARCH_ROOTS+=("${RUNNER_TEMP}")
+        [ -n "${Qt5_DIR}" ]      && SEARCH_ROOTS+=("${Qt5_DIR}")
+        [ -n "${Qt5_ROOT}" ]     && SEARCH_ROOTS+=("${Qt5_ROOT}")
+        [ -n "${QT_ROOT_DIR}" ]  && SEARCH_ROOTS+=("${QT_ROOT_DIR}")
+        [ -n "${RUNNER_TEMP}" ]  && SEARCH_ROOTS+=("${RUNNER_TEMP}")
         SEARCH_ROOTS+=("${HOME}" "${GITHUB_WORKSPACE}" "/opt")
 
         echo "Search roots: ${SEARCH_ROOTS[*]}"
-
         QT5_CONFIG=""
         for root in "${SEARCH_ROOTS[@]}"; do
           if [ -d "${root}" ]; then
-            echo "Searching for Qt5Config.cmake under: ${root}"
             QT5_CONFIG=$(find "${root}" -type f -name Qt5Config.cmake -print -quit 2>/dev/null || true)
             if [ -n "${QT5_CONFIG}" ]; then
               break
@@ -211,18 +211,26 @@ jobs:
           fi
         done
 
-        if [ -z "${QT5_CONFIG}" ]; then
-          echo "Qt5Config.cmake not found in any search root"
-          echo "Listing QT_CACHE_DIR (${QT_CACHE_DIR}) top-level:"
-          ls -la "${QT_CACHE_DIR}" || true
-          exit 1
+        if [ -n "${QT5_CONFIG}" ]; then
+          QT5_CMAKE_DIR=$(dirname "${QT5_CONFIG}")
+          QT_PREFIX=$(cd "${QT5_CMAKE_DIR}/../.." && pwd)
+          echo "Found Qt5Config.cmake (jurplel): ${QT5_CONFIG}"
+          echo "Qt5_DIR=${QT5_CMAKE_DIR}" >> "$GITHUB_ENV"
+          echo "CMAKE_PREFIX_PATH=${QT_PREFIX}" >> "$GITHUB_ENV"
+        else
+          # Fall back to system Qt5 installed by apt
+          APT_QT5_CONFIG=$(find /usr/lib -type f -name Qt5Config.cmake -print -quit 2>/dev/null || true)
+          if [ -n "${APT_QT5_CONFIG}" ]; then
+            APT_QT5_CMAKE_DIR=$(dirname "${APT_QT5_CONFIG}")
+            APT_QT_PREFIX=$(cd "${APT_QT5_CMAKE_DIR}/../.." && pwd)
+            echo "Falling back to system Qt5Config.cmake: ${APT_QT5_CONFIG}"
+            echo "Qt5_DIR=${APT_QT5_CMAKE_DIR}" >> "$GITHUB_ENV"
+            echo "CMAKE_PREFIX_PATH=${APT_QT_PREFIX}" >> "$GITHUB_ENV"
+          else
+            echo "ERROR: Qt5Config.cmake not found anywhere (jurplel cache and system apt both failed)"
+            exit 1
+          fi
         fi
-
-        QT5_CMAKE_DIR=$(dirname "${QT5_CONFIG}")
-        QT_PREFIX=$(cd "${QT5_CMAKE_DIR}/../.." && pwd)
-        echo "Found Qt5Config.cmake: ${QT5_CONFIG}"
-        echo "Qt5_DIR=${QT5_CMAKE_DIR}" >> "$GITHUB_ENV"
-        echo "CMAKE_PREFIX_PATH=${QT_PREFIX}" >> "$GITHUB_ENV"
 
     - name: Verify Qt CMake package (Ubuntu only)
       if: matrix.os == 'ubuntu-latest'
@@ -233,23 +241,23 @@ jobs:
         test -f "${Qt5_DIR}/Qt5Config.cmake"
 
     - name: Configure CMake
-      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: >
-        cmake -B ${{ steps.strings.outputs.build-output-dir }}
-        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
-        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
-        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-        #-DBUILDCARBONUI_SHARED=${{ matrix.build_shared }}
-        -S ${{ github.workspace }}
+      shell: bash
+      run: |
+        EXTRA_ARGS=""
+        if [ "${{ runner.os }}" = "Linux" ] && [ -n "${Qt5_DIR}" ]; then
+          EXTRA_ARGS="-DQt5_DIR=${Qt5_DIR} -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}"
+        fi
+        cmake -B "${{ steps.strings.outputs.build-output-dir }}" \
+          -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
+          -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          ${EXTRA_ARGS} \
+          -S "${{ github.workspace }}"
 
     - name: Build
-      # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest --build-config ${{ matrix.build_type }}
 

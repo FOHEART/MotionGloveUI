@@ -74,6 +74,8 @@
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "installDir": "${sourceDir}/out/install/${presetName}",
       "cacheVariables": {
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_CXX_COMPILER": "g++",
         "CMAKE_BUILD_TYPE": "Debug"
       },
       "condition": {
@@ -85,6 +87,14 @@
         "microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
           "sourceDir": "$env{HOME}/.vs/$ms{projectDirName}"
         }
+      }
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux Release",
+      "inherits": "linux-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
       }
     },
     {
@@ -122,7 +132,7 @@
   ],
   "vendor": {
     "qt-project.org/Presets": {
-      "checksum": "h1xi3fq+8kipaOTvrnZ7MZ9X1L8="
+      "checksum": "Y4Q6vrygNR+yYsuB2cK8WhF1hCA="
     }
   }
 }

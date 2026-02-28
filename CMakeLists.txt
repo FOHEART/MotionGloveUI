@@ -61,7 +61,7 @@ include(cmake/skipAutoMoc.cmake)
 
 
 # Ensure Qt5 imported targets are available for linking
-find_package(Qt5 REQUIRED COMPONENTS Core Network Gui Widgets)
+find_package(Qt5 REQUIRED COMPONENTS Core Network Gui Widgets Multimedia MultimediaWidgets)
 
 
 CPMAddPackage(
@@ -153,25 +153,40 @@ if(MSVC)
 target_compile_definitions(${PROJECT_NAME}
   PRIVATE
     UNICODE _WIN32 WIN64 QT_DLL  
-    LIBH2UI_EXPORTS
+    #LIBH2UI_EXPORTS
     $<$<CONFIG:Release>:QT_NO_DEBUG;NDEBUG>
 )
 else()
 target_compile_definitions(${PROJECT_NAME}
   PRIVATE
     UNICODE  QT_DLL  
-    LIBH2UI_EXPORTS
+    #LIBH2UI_EXPORTS
     $<$<CONFIG:Release>:QT_NO_DEBUG;NDEBUG>
 )
 endif()
 
-if(MSVC)
+# Ensure source files are interpreted as UTF-8 by the compiler
+# - MSVC: use /utf-8
+# - GCC/Clang: use -finput-charset and -fexec-charset
+if (MSVC)
+  # Add MSVC-specific macro to suppress CRT secure warnings
+  target_compile_options(${PROJECT_NAME} PRIVATE /utf-8)
   target_compile_options(${PROJECT_NAME} PRIVATE /MP /Zc:wchar_t)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS)
+else()
+  target_compile_options(${PROJECT_NAME} PRIVATE -finput-charset=UTF-8 -fexec-charset=UTF-8)
 endif()
+
 
 file(GLOB_RECURSE PROJECT_UI_FILES CONFIGURE_DEPENDS
   "${CMAKE_CURRENT_SOURCE_DIR}/ui/*.ui"
 )
+
+# Remove Windows-only .ui files on non-Windows platforms
+if(NOT WIN32)
+  list(FILTER PROJECT_UI_FILES EXCLUDE REGEX ".*/steamvr/h2SteamVRMonitorWidget\\.ui$")
+  list(FILTER PROJECT_UI_FILES EXCLUDE REGEX ".*/steamvr/libH2SteamDriverUI\\.ui$")
+endif()
 
 # ── Manual Qt code generation (AUTO* are all OFF) ──────────────────────────
 
@@ -186,7 +201,6 @@ set(PROJECT_MOC_HEADERS
   "${CMAKE_CURRENT_SOURCE_DIR}/include/h2GloveDeviceTreeWidget.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/h2SettingsDialog.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/include/h2StreamConfigWidget.h"
-  "${CMAKE_CURRENT_SOURCE_DIR}/include/libH2SteamDriverUI.h"
   # ui/ (flat)
   "${CMAKE_CURRENT_SOURCE_DIR}/ui/h2CSVConfig.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/ui/h2NetBroadcastWidget.h"
@@ -208,14 +222,20 @@ set(PROJECT_MOC_HEADERS
   "${CMAKE_CURRENT_SOURCE_DIR}/ui/joystick/h2JoystickWidget.h"
   # ui/skeleton/
   "${CMAKE_CURRENT_SOURCE_DIR}/ui/skeleton/h2SkeletonWidget.h"
-  # ui/steamvr/
-  "${CMAKE_CURRENT_SOURCE_DIR}/ui/steamvr/h2SteamVRMonitorWidget.h"
   # inc/
   "${CMAKE_CURRENT_SOURCE_DIR}/inc/h2UnityWindowConfig.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/inc/h2UnityWindowMgr.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/inc/h2GloveSepMgr.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/inc/h2UnityEmbededDialog.h"
 )
+
+# Windows-only headers: Q_OBJECT is inside #ifdef _WIN32 in these files
+if(WIN32)
+  list(APPEND PROJECT_MOC_HEADERS
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/libH2SteamDriverUI.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ui/steamvr/h2SteamVRMonitorWidget.h"
+  )
+endif()
 
 qt5_wrap_cpp(PROJECT_MOC_SOURCES
   ${PROJECT_MOC_HEADERS}
@@ -240,7 +260,10 @@ target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_UI_FILES})
 # ───────────────────────────────────────────────────────────────────────────
 
 # Link Qt
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core Qt5::Network Qt5::Gui Qt5::Widgets)
+target_link_libraries(${PROJECT_NAME} PRIVATE
+  Qt5::Core Qt5::Network Qt5::Gui Qt5::Widgets
+  Qt5::Multimedia Qt5::MultimediaWidgets
+)
 # Link the CarbonUI target provided by CPM to the project executable
 target_link_libraries(${PROJECT_NAME} PRIVATE CarbonUI)
 target_link_libraries(${PROJECT_NAME} PRIVATE h2sdk::h2sdk)
@@ -249,5 +272,11 @@ if(WIN32)
   target_link_libraries(${PROJECT_NAME} PRIVATE GloveSteamDriver)
 endif()
 
+# Linux: link against OpenGL and X11/XCB system libraries required by Qt Widgets
+if(UNIX AND NOT APPLE)
+  find_package(OpenGL REQUIRED)
+  target_link_libraries(${PROJECT_NAME} PRIVATE OpenGL::GL)
+endif()
 
-# TODO: Add tests and install targets if needed.# TODO: Add tests and install targets if needed.
+
+# TODO: Add tests and install targets if needed.
