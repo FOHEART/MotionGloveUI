@@ -54,6 +54,13 @@ endif()
 include(cmake/qt.cmake)
 qt_standard_project_setup()
 
+# Restrict AUTOUIC to this project's UI files only.
+# Without this, AUTOUIC may scan headers from Qt/3rd-party includes (e.g. QtDesigner private headers)
+# and fail when it sees `#include "ui_*.h"` without the corresponding `.ui` file.
+set(CMAKE_AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR}/ui")
+set(CMAKE_AUTOUIC_OPTIONS "--no-protection")
+set(CMAKE_AUTOUIC_RELAXED_MODE OFF)
+
 include(cmake/skipAutoMoc.cmake)
 
 
@@ -110,9 +117,12 @@ file(GLOB_RECURSE PROJECT_HEADERS CONFIGURE_DEPENDS
 
 add_library(${PROJECT_NAME} SHARED
   ${PROJECT_SOURCES}
-  ${PROJECT_HEADERS}
   ${PROJECT_QRC_FILES}
+  ${PROJECT_UI_FILES}
 )
+
+# Headers are kept for IDE visibility, but should not drive Qt's autogen scanning.
+target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_HEADERS})
 
 # Apply skip rules for transitive dependency headers that may be picked up by AUTOMOC.
 skip_automoc_in_deps()
