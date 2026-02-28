@@ -61,7 +61,7 @@ include(cmake/skipAutoMoc.cmake)
 
 
 # Ensure Qt5 imported targets are available for linking
-find_package(Qt5 REQUIRED COMPONENTS Core Network Gui Widgets Multimedia MultimediaWidgets)
+find_package(Qt5 REQUIRED COMPONENTS Core Network Gui Widgets )
 
 # GitHub Actions runners typically do not have an SSH deploy key configured.
 # Default to HTTPS cloning and allow opting into SSH with -DXSTYPES_FETCH_VIA_SSH=ON.
@@ -298,7 +298,6 @@ target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_UI_FILES})
 # Link Qt
 target_link_libraries(${PROJECT_NAME} PRIVATE
   Qt5::Core Qt5::Network Qt5::Gui Qt5::Widgets
-  Qt5::Multimedia Qt5::MultimediaWidgets
 )
 # Link the CarbonUI target provided by CPM to the project executable
 target_link_libraries(${PROJECT_NAME} PRIVATE CarbonUI)
