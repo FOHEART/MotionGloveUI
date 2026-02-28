@@ -54,13 +54,8 @@ endif()
 include(cmake/qt.cmake)
 qt_standard_project_setup()
 
-# Restrict AUTOUIC to this project's UI files only.
-# Without this, AUTOUIC may scan headers from Qt/3rd-party includes (e.g. QtDesigner private headers)
-# and fail when it sees `#include "ui_*.h"` without the corresponding `.ui` file.
-set(CMAKE_AUTOUIC OFF)
-set(CMAKE_AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR}/ui")
-set(CMAKE_AUTOUIC_OPTIONS "--no-protection")
-set(CMAKE_AUTOUIC_RELAXED_MODE OFF)
+# All AUTO* (AUTOMOC / AUTOUIC / AUTORCC) are OFF.
+# Qt code generation is performed manually via qt5_wrap_cpp / qt5_wrap_ui / qt5_add_resources.
 
 include(cmake/skipAutoMoc.cmake)
 
@@ -98,11 +93,6 @@ file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS
   "${CMAKE_CURRENT_SOURCE_DIR}/ui/*.cxx"
 )
 
-# Qt resource files (.qrc)
-set(PROJECT_QRC_FILES
-  "${CMAKE_CURRENT_SOURCE_DIR}/img.qrc"
-)
-
 file(GLOB_RECURSE PROJECT_HEADERS CONFIGURE_DEPENDS
   "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
@@ -118,20 +108,10 @@ file(GLOB_RECURSE PROJECT_HEADERS CONFIGURE_DEPENDS
 
 add_library(${PROJECT_NAME} SHARED
   ${PROJECT_SOURCES}
-  ${PROJECT_QRC_FILES}
 )
 
-# Headers are kept for IDE visibility, but should not drive Qt's autogen scanning.
+# Headers are kept for IDE visibility only (no autogen scanning — all AUTO* are OFF).
 target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_HEADERS})
-
-# Apply skip rules for transitive dependency headers that may be picked up by AUTOMOC.
-skip_automoc_in_deps()
-
-# Ensure AUTOUIC can locate .ui files referenced by generated ui_*.h includes
-# (e.g. headers under `inc/` including `ui_<Form>.h`).
-set_property(TARGET ${PROJECT_NAME} PROPERTY AUTOUIC_SEARCH_PATHS
-  "${CMAKE_CURRENT_SOURCE_DIR}/ui"
-)
 
 
 # Keep folder tree in IDEs that support it
@@ -162,16 +142,12 @@ target_include_directories(${PROJECT_NAME}
     "${CMAKE_CURRENT_SOURCE_DIR}/inc"
 )
 
-# UIC-generated headers (ui_*.h) are produced into the build tree.
-# Add the autogen include directories so `#include "ui_xxx.h"` works.
-# Note: With Qt5 `qt5_wrap_ui`, headers can be generated directly under
-# `${CMAKE_CURRENT_BINARY_DIR}`.
+# UIC-generated headers (ui_*.h) are produced into the build tree by qt5_wrap_ui.
+# Add the binary dir so `#include "ui_xxx.h"` works.
 target_include_directories(${PROJECT_NAME}
   PRIVATE
     "${CMAKE_CURRENT_BINARY_DIR}"
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_autogen/include"
 )
-
 # Macros from the original .vcxproj
 if(MSVC)
 target_compile_definitions(${PROJECT_NAME}
@@ -193,42 +169,85 @@ if(MSVC)
   target_compile_options(${PROJECT_NAME} PRIVATE /MP /Zc:wchar_t)
 endif()
 
-# Qt
-# (CMAKE_AUTOMOC/AUTORCC/AUTOUIC are set above and on the target)
-
 file(GLOB_RECURSE PROJECT_UI_FILES CONFIGURE_DEPENDS
   "${CMAKE_CURRENT_SOURCE_DIR}/ui/*.ui"
 )
 
+# ── Manual Qt code generation (AUTO* are all OFF) ──────────────────────────
 
+# 1. UIC: generate ui_*.h from every .ui file
+qt5_wrap_ui(PROJECT_UI_HEADERS ${PROJECT_UI_FILES})
 
+# 2. MOC: generate moc_*.cpp for every header that contains Q_OBJECT / Q_GADGET
+set(PROJECT_MOC_HEADERS
+  # include/
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/h2Widget.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/h2GloveDeviceTreeContainerWidget.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/h2GloveDeviceTreeWidget.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/h2SettingsDialog.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/h2StreamConfigWidget.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/libH2SteamDriverUI.h"
+  # ui/ (flat)
+  "${CMAKE_CURRENT_SOURCE_DIR}/ui/h2CSVConfig.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ui/h2NetBroadcastWidget.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ui/h2IndexSimuWidget.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ui/h2Notusable.h"
+  # ui/finger/
+  "${CMAKE_CURRENT_SOURCE_DIR}/ui/finger/h2FingerAdjustEnhancedWidget.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ui/finger/h2FingerAdjustFreeModeWidget.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ui/finger/h2FingerAdjustLockYawWidget.h"
+  # ui/gesture/
+  "${CMAKE_CURRENT_SOURCE_DIR}/ui/gesture/h2GestureCompare.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ui/gesture/h2GestureContainer.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ui/gesture/h2GestureDisplay.h"
+  # ui/joystick/
+  "${CMAKE_CURRENT_SOURCE_DIR}/ui/joystick/h2FingerClose.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ui/joystick/h2JoystickABXY.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ui/joystick/h2JoystickCali.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ui/joystick/h2JoyStickPadWidget.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ui/joystick/h2JoystickWidget.h"
+  # ui/skeleton/
+  "${CMAKE_CURRENT_SOURCE_DIR}/ui/skeleton/h2SkeletonWidget.h"
+  # ui/steamvr/
+  "${CMAKE_CURRENT_SOURCE_DIR}/ui/steamvr/h2SteamVRMonitorWidget.h"
+  # inc/
+  "${CMAKE_CURRENT_SOURCE_DIR}/inc/h2UnityWindowConfig.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/inc/h2UnityWindowMgr.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/inc/h2GloveSepMgr.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/inc/h2UnityEmbededDialog.h"
+)
 
-# Link Qt early so moc/uic/rcc tools are available and automoc can resolve includes.
+qt5_wrap_cpp(PROJECT_MOC_SOURCES
+  ${PROJECT_MOC_HEADERS}
+  TARGET ${PROJECT_NAME}
+)
+
+# 3. RCC: compile Qt resource files (.qrc) into C++ source
+qt5_add_resources(PROJECT_RCC_SOURCES
+  "${CMAKE_CURRENT_SOURCE_DIR}/img.qrc"
+)
+
+# Wire all generated sources into the target
+target_sources(${PROJECT_NAME} PRIVATE
+  ${PROJECT_UI_HEADERS}
+  ${PROJECT_MOC_SOURCES}
+  ${PROJECT_RCC_SOURCES}
+)
+
+# Keep .ui files visible in the IDE
+target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_UI_FILES})
+
+# ───────────────────────────────────────────────────────────────────────────
+
+# Link Qt
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core Qt5::Network Qt5::Gui Qt5::Widgets)
 # Link the CarbonUI target provided by CPM to the project executable
 target_link_libraries(${PROJECT_NAME} PRIVATE CarbonUI)
-
-qt5_wrap_ui(PROJECT_UI_HEADERS ${PROJECT_UI_FILES})
-
-# Keep .ui files for IDE visibility.
-target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_UI_FILES})
-
-# Third-party includes/libs inferred from libh2UI.vcxproj
-# GloveSteamDriver is provided via CPM; do not use relative-path includes or link dirs.
-set(PROJECT_THIRDPARTY_INCLUDE_DIRS "")
-
-target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_THIRDPARTY_INCLUDE_DIRS})
-
-# No link_directories needed for CPM-provided dependencies
-
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
-  h2sdk::h2sdk
-)
+target_link_libraries(${PROJECT_NAME} PRIVATE h2sdk::h2sdk)
 
 if(WIN32)
   target_link_libraries(${PROJECT_NAME} PRIVATE GloveSteamDriver)
 endif()
 
 
-# TODO: Add tests and install targets if needed.
+# TODO: Add tests and install targets if needed.# TODO: Add tests and install targets if needed.

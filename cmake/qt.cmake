@@ -1,8 +1,8 @@
 ﻿if(QT_VERSION VERSION_LESS 6.3)
     macro(qt_standard_project_setup)
-        set(CMAKE_AUTOMOC ON)
-        set(CMAKE_AUTOUIC ON)
-        set(CMAKE_AUTORCC ON)
+        set(CMAKE_AUTOMOC OFF)
+        set(CMAKE_AUTOUIC OFF)
+        set(CMAKE_AUTORCC OFF)
     endmacro()
 endif()
 
@@ -15,9 +15,9 @@ if(QT_VERSION VERSION_LESS 6.0)
         endif()
     endmacro()
 
-    # Qt5 doesn't provide qt_add_resources(); enable AUTORCC instead.
+    # Qt5 provides qt5_add_resources(); this macro is a no-op shim kept for API
+    # compatibility only. Use qt5_add_resources() directly in CMakeLists.txt.
     macro(qt_add_resources out_var)
-        # No explicit resource target needed in Qt5 when CMAKE_AUTORCC is ON and .qrc is part of sources.
         set(${out_var} ${ARGN})
     endmacro()
 endif()
