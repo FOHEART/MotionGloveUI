@@ -23,14 +23,14 @@ jobs:
       #
       # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        os: [windows-latest, ubuntu-22.04]
         build_type: [Release]
         c_compiler: [gcc,  cl]
         include:
           - os: windows-latest
             c_compiler: cl
             cpp_compiler: cl
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             c_compiler: gcc
             cpp_compiler: g++
         exclude:
@@ -38,7 +38,7 @@ jobs:
             c_compiler: gcc
           - os: windows-latest
             c_compiler: clang
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             c_compiler: cl
 
 
@@ -85,7 +85,7 @@ jobs:
         echo "QT_ARCH=win64_msvc2019_64" >> "$GITHUB_ENV"
 
     - name: Set Qt cache dir (Ubuntu only)
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-22.04'
       shell: bash
       run: |
         echo "QT_CACHE_DIR=${{ github.workspace }}/.qt" >> "$GITHUB_ENV"
@@ -103,7 +103,7 @@ jobs:
           ${{ runner.os }}-qt-5.15.2-
 
     - name: Restore Qt cache (Ubuntu only)
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-22.04'
       id: qt-cache-ubuntu
       uses: actions/cache@v4
       with:
@@ -113,7 +113,7 @@ jobs:
           ${{ runner.os }}-qt-5.14.2-
 
     - name: Install system dependencies (Ubuntu only)
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-22.04'
       shell: bash
       run: |
         sudo apt-get update
@@ -133,7 +133,6 @@ jobs:
           libxcb-xfixes0 \
           libxcb-xinerama0 \
           libxcb-xkb1 \
-          libqt5multimedia5-dev \
           qtmultimedia5-dev
 
     - name: Install Qt 5.15.2 (Windows only)
@@ -174,7 +173,7 @@ jobs:
         test -f "${Qt5_DIR}/Qt5Config.cmake"
 
     - name: Install Qt 5.14.2 (Ubuntu only)
-      if: matrix.os == 'ubuntu-latest' && steps.qt-cache-ubuntu.outputs.cache-hit != 'true'
+      if: matrix.os == 'ubuntu-22.04' && steps.qt-cache-ubuntu.outputs.cache-hit != 'true'
       uses: jurplel/install-qt-action@v4
       with:
         version: '5.14.2'
@@ -186,7 +185,7 @@ jobs:
         install-deps: true
 
     - name: Detect Qt CMake package (Ubuntu only)
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-22.04'
       shell: bash
       run: |
         echo "Env dump (Qt-related):"
@@ -233,7 +232,7 @@ jobs:
         fi
 
     - name: Verify Qt CMake package (Ubuntu only)
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-22.04'
       shell: bash
       run: |
         echo "Qt5_DIR=${Qt5_DIR}"
