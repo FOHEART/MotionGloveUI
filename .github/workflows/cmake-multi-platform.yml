@@ -25,7 +25,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
         build_type: [Release]
-        build_shared: [ON, OFF]
+        #build_shared: [ON, OFF]
         c_compiler: [gcc,  cl]
         include:
           - os: windows-latest
@@ -42,12 +42,27 @@ jobs:
           - os: ubuntu-latest
             c_compiler: cl
 
+
+    # Provide the private-repo token via repository secret named XSTYPES_PAT
+    env:
+      XSTYPES_PAT: ${{ secrets.XSTYPES_PAT }}
+
     steps:
     - uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.XSTYPES_PAT }}
-        submodules: recursive
-        fetch-depth: 0
+  
+    - name: Configure git auth (unix)
+      if: runner.os != 'Windows'
+      run: |
+        printf "machine github.com\nlogin %s\npassword %s\n" "${{ github.actor }}" "${{ secrets.XSTYPES_PAT }}" > "${HOME}/.netrc"
+        chmod 600 "${HOME}/.netrc"
+
+    - name: Configure git auth (windows)
+      if: runner.os == 'Windows'
+      shell: powershell
+      run: |
+        $netrc = "machine github.com`nlogin $env:GITHUB_ACTOR`npassword $env:XSTYPES_PAT`n"
+        $netrc | Out-File -FilePath "$env:USERPROFILE\.netrc" -Encoding ascii
+        icacls "$env:USERPROFILE\.netrc" /inheritance:r /grant:r "${env:USERNAME}:R"
 
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
@@ -225,7 +240,7 @@ jobs:
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-        -DBUILDCARBONUI_SHARED=${{ matrix.build_shared }}
+        #-DBUILDCARBONUI_SHARED=${{ matrix.build_shared }}
         -S ${{ github.workspace }}
 
     - name: Build
