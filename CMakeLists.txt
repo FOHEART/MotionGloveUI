@@ -13,6 +13,9 @@ endif()
 set(PROJECT_NAME "MotionGloveUI")
 project(${PROJECT_NAME} LANGUAGES CXX)
 
+# Build as shared library by default. Allow parent projects/CI to override.
+option(MOTIONGLOVE_UI_BUILD_SHARED "Build MotionGloveUI as a shared library" ON)
+
 # Only keep Debug/Release in multi-config generators (e.g. Visual Studio)
 if(CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
@@ -132,9 +135,15 @@ file(GLOB_RECURSE PROJECT_HEADERS CONFIGURE_DEPENDS
   "${CMAKE_CURRENT_SOURCE_DIR}/ui/*.hpp"
 )
 
-add_library(${PROJECT_NAME} SHARED
-  ${PROJECT_SOURCES}
-)
+if(MOTIONGLOVE_UI_BUILD_SHARED)
+  add_library(${PROJECT_NAME} SHARED
+    ${PROJECT_SOURCES}
+  )
+else()
+  add_library(${PROJECT_NAME} STATIC
+    ${PROJECT_SOURCES}
+  )
+endif()
 
 # Headers are kept for IDE visibility only (no autogen scanning — all AUTO* are OFF).
 target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_HEADERS})
@@ -178,15 +187,17 @@ target_include_directories(${PROJECT_NAME}
 if(MSVC)
 target_compile_definitions(${PROJECT_NAME}
   PRIVATE
-    UNICODE _WIN32 WIN64 QT_DLL  
-    LIBH2UI_EXPORTS
+    UNICODE _WIN32 WIN64 QT_DLL
+    $<$<BOOL:${MOTIONGLOVE_UI_BUILD_SHARED}>:LIBH2UI_EXPORTS>
+    $<$<NOT:$<BOOL:${MOTIONGLOVE_UI_BUILD_SHARED}>>:LIBH2UI_STATIC_LIB>
     $<$<CONFIG:Release>:QT_NO_DEBUG;NDEBUG>
 )
 else()
 target_compile_definitions(${PROJECT_NAME}
   PRIVATE
-    UNICODE QT_DLL  
-    LIBH2UI_EXPORTS
+    UNICODE QT_DLL
+    $<$<BOOL:${MOTIONGLOVE_UI_BUILD_SHARED}>:LIBH2UI_EXPORTS>
+    $<$<NOT:$<BOOL:${MOTIONGLOVE_UI_BUILD_SHARED}>>:LIBH2UI_STATIC_LIB>
     $<$<CONFIG:Release>:QT_NO_DEBUG;NDEBUG>
 )
 endif()

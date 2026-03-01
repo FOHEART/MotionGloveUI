@@ -25,6 +25,7 @@ jobs:
       matrix:
         os: [windows-latest, ubuntu-22.04]
         build_type: [Release]
+        build_shared: [ON, OFF]
         c_compiler: [gcc,  cl]
         include:
           - os: windows-latest
@@ -250,6 +251,7 @@ jobs:
           -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          -DMOTIONGLOVE_UI_BUILD_SHARED=${{ matrix.build_shared }} \
           ${EXTRA_ARGS} \
           -S "${{ github.workspace }}"
 
