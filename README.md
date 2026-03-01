@@ -12,8 +12,6 @@ cmake -S . -B out/build -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE=Release -D
 
 cmake --build out/build --config Release --parallel
 
-
-
 # Ubuntu Compile
 
 编译Debug版本：
@@ -27,3 +25,32 @@ cmake --build out/build --config Debug --parallel
 cmake -S . -B out/build -DXSTYPES_FETCH_VIA_SSH=ON -DCMAKE_BUILD_TYPE=Release
 
 cmake --build out/build --config Release --parallel
+
+
+
+# 编译为动/静态库
+
+编译为动态库
+
+添加 -DMOTIONGLOVE_UI_BUILD_SHARED ON&#x20;
+
+编译为静态库
+
+添加 -DMOTIONGLOVE_UI_BUILD_SHARED OFF
+
+
+
+使用CPM引入，编译为动态库
+
+OPTIONS
+
+"MOTIONGLOVE_UI_BUILD_SHARED ON"
+
+
+
+使用CPM引入，编译为静态库
+
+OPTIONS
+
+"MOTIONGLOVE_UI_BUILD_SHARED OFF"
+

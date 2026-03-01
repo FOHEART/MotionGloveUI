@@ -14,7 +14,11 @@ set(PROJECT_NAME "MotionGloveUI")
 project(${PROJECT_NAME} LANGUAGES CXX)
 
 # Build as shared library by default. Allow parent projects/CI to override.
-option(MOTIONGLOVE_UI_BUILD_SHARED "Build MotionGloveUI as a shared library" ON)
+if(NOT DEFINED MOTIONGLOVE_UI_BUILD_SHARED)
+  option(MOTIONGLOVE_UI_BUILD_SHARED "Build MotionGloveUI as a shared library" ON)
+else()
+  message(STATUS "MOTIONGLOVE_UI_BUILD_SHARED provided by caller: ${MOTIONGLOVE_UI_BUILD_SHARED}")
+endif()
 
 # Only keep Debug/Release in multi-config generators (e.g. Visual Studio)
 if(CMAKE_CONFIGURATION_TYPES)
@@ -25,9 +29,6 @@ endif()
 # ########################  3rd party dependencies  #########################
 include(FetchContent)
 include(cmake/CPM.cmake)
-
-# Ensure transitive deps don't build optional examples/tools
-set(CSERIALPORT_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 # Try to auto-detect Qt5 via find_package (so we can derive Qt5_DIR from the discovered Qt5Core)
 # This allows users to rely on find_package instead of hardcoding Qt5 paths.
@@ -46,12 +47,6 @@ endif()
 
 include(cmake/qt.cmake)
 qt_standard_project_setup()
-
-# All AUTO* (AUTOMOC / AUTOUIC / AUTORCC) are OFF.
-# Qt code generation is performed manually via qt5_wrap_cpp / qt5_wrap_ui / qt5_add_resources.
-
-include(cmake/skipAutoMoc.cmake)
-
 
 # Ensure Qt5 imported targets are available for linking
 find_package(Qt5 REQUIRED COMPONENTS Core Network Gui Widgets )
@@ -187,7 +182,7 @@ target_include_directories(${PROJECT_NAME}
 if(MSVC)
 target_compile_definitions(${PROJECT_NAME}
   PRIVATE
-    UNICODE _WIN32 WIN64 QT_DLL
+     _WIN32 WIN64 QT_DLL
     $<$<BOOL:${MOTIONGLOVE_UI_BUILD_SHARED}>:LIBH2UI_EXPORTS>
     $<$<NOT:$<BOOL:${MOTIONGLOVE_UI_BUILD_SHARED}>>:LIBH2UI_STATIC_LIB>
     $<$<CONFIG:Release>:QT_NO_DEBUG;NDEBUG>
@@ -195,22 +190,18 @@ target_compile_definitions(${PROJECT_NAME}
 else()
 target_compile_definitions(${PROJECT_NAME}
   PRIVATE
-    UNICODE QT_DLL
+     QT_DLL
     $<$<BOOL:${MOTIONGLOVE_UI_BUILD_SHARED}>:LIBH2UI_EXPORTS>
     $<$<NOT:$<BOOL:${MOTIONGLOVE_UI_BUILD_SHARED}>>:LIBH2UI_STATIC_LIB>
     $<$<CONFIG:Release>:QT_NO_DEBUG;NDEBUG>
 )
 endif()
 
-# Ensure source files are interpreted as UTF-8 by the compiler
-# - MSVC: use /utf-8
-# - GCC/Clang: use -finput-charset and -fexec-charset
 if (MSVC)
   # Add MSVC-specific macro to suppress CRT secure warnings
-  target_compile_options(${PROJECT_NAME} PRIVATE /utf-8 /MP /Zc:wchar_t)
-  target_compile_definitions(${PROJECT_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS)
+  target_compile_options(${PROJECT_NAME} PRIVATE /utf-8 /MP /Zc:wchar_t /D_UNICODE /DUNICODE /D_CRT_SECURE_NO_WARNINGS)
 else()
-  target_compile_options(${PROJECT_NAME} PRIVATE -finput-charset=UTF-8 -fexec-charset=UTF-8)
+  target_compile_options(${PROJECT_NAME} PRIVATE -finput-charset=UTF-8 -fexec-charset=UTF-8 -D_UNICODE -DUNICODE)
 endif()
 
 
@@ -297,23 +288,15 @@ target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_UI_FILES})
 
 # Link Qt
 target_link_libraries(${PROJECT_NAME} PRIVATE
-  Qt5::Core Qt5::Network Qt5::Gui Qt5::Widgets
+  Qt5::Core Qt5::Network Qt5::Gui Qt5::Widgets 
 )
 # Link the CarbonUI target provided by CPM to the project executable
-target_link_libraries(${PROJECT_NAME} PRIVATE CarbonUI)
-
-
-target_link_libraries(${PROJECT_NAME} PRIVATE h2sdk)
+target_link_libraries(${PROJECT_NAME} PRIVATE CarbonUI h2sdk)
 
 if(WIN32)
   target_link_libraries(${PROJECT_NAME} PRIVATE GloveSteamDriver)
 endif()
 
-# Linux: link against OpenGL and X11/XCB system libraries required by Qt Widgets
-if(UNIX AND NOT APPLE)
-  find_package(OpenGL REQUIRED)
-  target_link_libraries(${PROJECT_NAME} PRIVATE OpenGL::GL)
-endif()
 
 
 # TODO: Add tests and install targets if needed.
