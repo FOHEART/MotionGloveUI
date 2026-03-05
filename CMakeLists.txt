@@ -13,6 +13,10 @@ endif()
 set(PROJECT_NAME "MotionGloveUI")
 project(${PROJECT_NAME} LANGUAGES CXX)
 
+# Require C++14: std::make_unique and other C++14 features are used throughout the codebase.
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 # Build as shared library by default. Allow parent projects/CI to override.
 if(NOT DEFINED MOTIONGLOVE_UI_BUILD_SHARED)
   option(MOTIONGLOVE_UI_BUILD_SHARED "Build MotionGloveUI as a shared library" ON)
