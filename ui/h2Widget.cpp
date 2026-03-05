@@ -197,7 +197,7 @@ void h2Widget::setSNAndAN(const unsigned int& suitNumber3E,
 		readGloveConfigFileToUI();
 
 		/*在实时模式下  将人物的出生位置分开*/
-		SeprateLiveGloves();
+		//SeprateLiveGloves();
 
 		{
 			//这里写入h2glove的序列号
@@ -344,48 +344,6 @@ void h2Widget::onH2MonitorTimer()
 
 	//printf("%d %d\r\n", leftHandFrameRate, rightHandFrameRate);
 }
-
-void h2Widget::SeprateLiveGloves()
-{
-	/*如果有多个模型 将模型按一米一个的距离分开 间隔*/
-	float loc[3];
-
-	h2GloveSepMgr t_pActorSepMgr;
-	t_pActorSepMgr.setSeprateDistance(1);
-	int globalIndex = 0;
-	H2_SDK_getCreateIndexGlobal(m_sn, &globalIndex);
-	t_pActorSepMgr.getCoordByIndex(globalIndex, loc);
-
-	float x, y, z;
-	x = loc[0]; y = loc[1]; z = loc[2];
-
-	float leftHandPosition[3] = {
-		-0.1f + x, 0 + y, 0.2f + z
-	};
-	float rightHandPosition[3] = {
-		0.1f + x, 0 + y, 0.2f + z
-	};
-	H2_SDK_set_2HandCenterLoc(
-		m_sn,
-		x,
-		y,
-		z
-	);
-
-	H2_SDK_setLeftWristPos(
-		m_sn,
-		leftHandPosition[0],
-		leftHandPosition[1],
-		leftHandPosition[2]
-	);
-	H2_SDK_setRightWristPos(
-		m_sn,
-		rightHandPosition[0],
-		rightHandPosition[1],
-		rightHandPosition[2]
-	);
-}
-
 
 /*
 调试手套的手势识别

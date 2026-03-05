@@ -40,7 +40,6 @@ public slots:
 
     void onH2MonitorTimer();
 
-    void SeprateLiveGloves();
 
  void setSNAndAN(const unsigned int& suitNumber3E,
         const std::string& actorName);
