@@ -165,13 +165,12 @@ void h2GloveDeviceTreeContainerWidget::onScanTimerTimeout()
 			// create widget for new device
 			h2GloveDeviceTreeWidget *w = new h2GloveDeviceTreeWidget(this);
 			w->setSerialNumber(sn);
-			// obtain create index from SDK and pass it to widget
-			int createIndex = 0;
-			if (H2_SDK_getCreateIndexGlobal(sn, &createIndex) == 0) {
-				w->setCreateIndexGlobal(createIndex);
+			
+			std::string gloveName = H2_SDK_getGloveName(sn);
+			if(!gloveName.empty()) {
+				w->setDeviceName(QString::fromStdString(gloveName));
 			} else {
-				// fallback: use serial as index if SDK call fails
-				w->setCreateIndexGlobal((int)sn);
+				w->setDeviceName(QString("Glove ") + QString::number(sn));
 			}
 			// set widget stylesheet: black border and 10px rounded corners
 			w->setStyleSheet("border: 1px solid black; border-radius: 10px;");

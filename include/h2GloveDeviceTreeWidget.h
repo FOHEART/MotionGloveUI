@@ -46,6 +46,7 @@ public:
 	void setCreateIndexGlobal(int index);
 	int createIndexGlobal() const { return m_createIndexGlobal; }
 
+	
 	// Global selection flag accessors (manipulate a module-level global selection state)
 	void setSelected(bool selected);
 	bool isSelected() const;

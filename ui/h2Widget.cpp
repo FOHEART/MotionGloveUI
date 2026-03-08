@@ -115,7 +115,7 @@ void h2Widget::setSNAndAN(const unsigned int& suitNumber3E,
 	{
 		H2_SDK_setOpenGloveEnable(m_sn, false, false);
 	}
-
+	 
 
 	((h2FingerAdjustLockYawWidget*)WIG_fingerAdjustLockYaw_LH)->setGloveSN(m_sn);
 	((h2FingerAdjustLockYawWidget*)WIG_fingerAdjustLockYaw_LH)->setIsLeftHand(true);
