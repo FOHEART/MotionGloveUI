@@ -567,37 +567,14 @@ void h2Widget::embedUnityWindow()
 
 void h2Widget::initUI()
 {
+	ui->TW_main->setCurrentWidget(ui->TW_main->widget(0)); // set first tab as default
 	CarbonUIClass::applyScrollAreaStyle(ui->scrollArea);
 	CarbonUIClass::applyScrollAreaStyle(ui->scrollArea_2);
 
 	CarbonUIClass::setupTabWidgetStyle(ui->TW_main);
 	QGroupBoxCollapser::installIntoGroupBox(ui->GBX_FR, 0, true);
 
-#if 0
-	// Allow UI to shrink horizontally when embedded in a dock.
-	if (ui->TW_Config)
-	{
-		ui->TW_Config->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-		ui->TW_Config->setMinimumWidth(0);
-	}
-	if (ui->TBL_JoyStick)
-	{
-		ui->TBL_JoyStick->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-		ui->TBL_JoyStick->setMinimumWidth(0);
-	}
-	if (ui->TBL_jsCali)
-	{
-		ui->TBL_jsCali->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-		ui->TBL_jsCali->setMinimumWidth(0);
-	}
 
-
-	if (ui->tab)
-	{
-		ui->tab->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-		ui->tab->setMinimumWidth(0);
-	}
-#endif
 	WIG_fingerAdjustFreeMode_LH = new h2FingerAdjustFreeModeWidget(this);
 	WIG_fingerAdjustFreeMode_LH->setObjectName(QStringLiteral("WIG_fingerAdjustFreeMode_LH"));
 	ui->VL_gloveModeConfig->addWidget(WIG_fingerAdjustFreeMode_LH);

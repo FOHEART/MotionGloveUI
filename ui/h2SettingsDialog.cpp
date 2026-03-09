@@ -23,7 +23,7 @@ h2SettingsDialog::h2SettingsDialog(QWidget *parent)
 		QWidget *tabWidget = new QWidget(); 
 		QVBoxLayout *vLayout = new QVBoxLayout(tabWidget); 
 		vLayout->addWidget(m_netBroadcastWidget);
-		ui->tabWidget->addTab(tabWidget, QString::fromLocal8Bit("数据转发"));
+		ui->tabWidget->addTab(tabWidget, QString::fromUtf8("数据转发"));
 
 	}
 	{
@@ -31,7 +31,7 @@ h2SettingsDialog::h2SettingsDialog(QWidget *parent)
 		QWidget *tabWidget = new QWidget(); 
 		QVBoxLayout *vLayout = new QVBoxLayout(tabWidget); 
 		vLayout->addWidget(m_streamFormatWidget);
-		ui->tabWidget->addTab(tabWidget, QString::fromLocal8Bit("转发格式"));
+		ui->tabWidget->addTab(tabWidget, QString::fromUtf8("转发格式"));
 	}
 }
 

@@ -166,10 +166,16 @@ void h2GloveDeviceTreeContainerWidget::onScanTimerTimeout()
 			h2GloveDeviceTreeWidget *w = new h2GloveDeviceTreeWidget(this);
 			w->setSerialNumber(sn);
 			
-			std::string gloveName = H2_SDK_getGloveName(sn);
-			if(!gloveName.empty()) {
+			char nameBuf[32] = { 0 };
+			unsigned int nameLen = 0;
+			int getNameRet=H2_SDK_getGloveName(sn, nameBuf, &nameLen);
+			if(getNameRet == 0 && nameLen > 0) {
+				std::string gloveName(nameBuf, nameLen);
 				w->setDeviceName(QString::fromStdString(gloveName));
-			} else {
+			}
+			else
+			{
+			
 				w->setDeviceName(QString("Glove ") + QString::number(sn));
 			}
 			// set widget stylesheet: black border and 10px rounded corners

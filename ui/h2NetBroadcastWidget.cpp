@@ -175,7 +175,7 @@ void h2NetBroadcastWidget::addIPPortRow(const QString &ip, const QString &port)
 	QTreeWidgetItem *rowItem = new QTreeWidgetItem(itemList);
 	ui.IPPortListWidget->addTopLevelItem(rowItem);
 
-	QPushButton *btnDelete = new QPushButton(QString::fromLocal8Bit("删除"), ui.IPPortListWidget);
+	QPushButton *btnDelete = new QPushButton(QString::fromUtf8("删除"), ui.IPPortListWidget);
 	CarbonUIClass::applyButtonStyle(btnDelete, CarbonUIClass::Shape_RoundAll);
 
 	// set button height to be 2 pixels smaller than the row/container height
