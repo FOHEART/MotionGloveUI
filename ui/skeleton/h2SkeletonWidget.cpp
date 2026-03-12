@@ -2,6 +2,8 @@
 #include "common_define_glove_hw.h"
 #include <QStandardItemModel>
 #include <QAbstractItemView>
+#include <QDebug>
+#include "CarbonUIClass.h"
 
 h2SkeletonWidget::h2SkeletonWidget(QWidget *parent)
     : QWidget(parent)
@@ -18,62 +20,40 @@ void h2SkeletonWidget::applyStylesheet()
 {
     // Set background and text color
     this->setStyleSheet("background-color: #3b3b3b; color: white;");
-    // Ensure tree items also inherit white text and style selected state
-    if (ui.treeView)
-    {
-        // Use resource images for branch indicators
-        ui.treeView->setStyleSheet(R"(
-            QTreeView { background-color: transparent; color: white; border: none; }
-            QTreeView::item { color: white; border: none; }
-            QTreeView::item:selected { background-color: #2e2e2e; color: white; border: none; }
-            QTreeView::item:selected:active { background-color: #2e2e2e; color: white; }
-            QTreeView::item:focus { outline: none; }
-            QTreeView::branch { background: transparent; }
-            /* Closed (right-pointing) arrow - white image resource */
-            QTreeView::branch:closed:has-children {
-                image: url(":/images/Resources/img/arrow_right.png");
-                width: 24px; height: 24px; }
-            /* Open (down-pointing) arrow - white image resource */
-            QTreeView::branch:open:has-children {
-                image: url(":/images/Resources/img/arrow_down.png");
-                width: 24px; height: 24px; }
-        )");
-
-        // Ensure the view shows branch indicators and can expand
-        ui.treeView->setRootIsDecorated(true);
-        ui.treeView->setItemsExpandable(true);
-        ui.treeView->setExpandsOnDoubleClick(true);
-        // Ensure there is space for the branch icon
-        ui.treeView->setIndentation(14);
-
-        // Disable editing via the view
-        ui.treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    }
+	CarbonUIClass::applyTreeViewStyle(ui.treeView);
 }
 
 void h2SkeletonWidget::populateSkeletonTree()
 {
+    constexpr int kSkeletonIndexRole = Qt::UserRole + 1;
+
     // Create tree model and populate using KHS32_SkeletonIndex entries
     QStandardItemModel* model = new QStandardItemModel(this);
     model->setHorizontalHeaderLabels(QStringList() << tr("Skeleton"));
 
     QStandardItem* rightHandItem = new QStandardItem(QString::fromStdString(kinemHumanSkeleton32[KHS32_RightHand]));
     rightHandItem->setEditable(false);
+    rightHandItem->setData(static_cast<int>(KHS32_RightHand), kSkeletonIndexRole);
+
     // add children between RightHand and LeftHand
     for (int i = KHS32_RightHand + 1; i < KHS32_LeftHand; ++i)
     {
         QStandardItem* child = new QStandardItem(QString::fromStdString(kinemHumanSkeleton32[i]));
         child->setEditable(false);
+        child->setData(i, kSkeletonIndexRole);
         rightHandItem->appendRow(child);
     }
 
     QStandardItem* leftHandItem = new QStandardItem(QString::fromStdString(kinemHumanSkeleton32[KHS32_LeftHand]));
     leftHandItem->setEditable(false);
+    leftHandItem->setData(static_cast<int>(KHS32_LeftHand), kSkeletonIndexRole);
+
     // add children between LeftHand and end
     for (int i = KHS32_LeftHand + 1; i < KHS32_Count; ++i)
     {
         QStandardItem* child = new QStandardItem(QString::fromStdString(kinemHumanSkeleton32[i]));
         child->setEditable(false);
+        child->setData(i, kSkeletonIndexRole);
         leftHandItem->appendRow(child);
     }
 
@@ -86,6 +66,21 @@ void h2SkeletonWidget::populateSkeletonTree()
         ui.treeView->setModel(model);
         ui.treeView->setHeaderHidden(true);
         ui.treeView->expandAll();
+
+        QObject::connect(ui.treeView, &QTreeView::clicked, this,
+            [kSkeletonIndexRole](const QModelIndex& idx)
+            {
+                bool ok = false;
+                int skIndex = idx.data(kSkeletonIndexRole).toInt(&ok);
+                if (ok && skIndex >= 0 && skIndex < KHS32_Count)
+                {
+                    qDebug() << "Skeleton:" << kinemHumanSkeleton32[skIndex].c_str();
+                }
+                else
+                {
+                    qDebug() << "Skeleton:" << idx.data(Qt::DisplayRole).toString();
+                }
+            });
     }
 }
 
