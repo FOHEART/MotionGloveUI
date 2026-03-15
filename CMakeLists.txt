@@ -295,7 +295,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
   Qt5::Core Qt5::Network Qt5::Gui Qt5::Widgets 
 )
 # Link the CarbonUI target provided by CPM to the project executable
-target_link_libraries(${PROJECT_NAME} PRIVATE CarbonUI h2sdk)
+target_link_libraries(${PROJECT_NAME} PRIVATE CarbonUI MotionGloveLLSDK)
 
 if(WIN32)
   target_link_libraries(${PROJECT_NAME} PRIVATE GloveSteamDriver)
