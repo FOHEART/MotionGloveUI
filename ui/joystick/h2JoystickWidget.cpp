@@ -139,8 +139,8 @@ void h2JoystickWidget::readGloveConfigFileToUI(void)
 
 	{
 		//配置文件中的死区 读到界面上
-		int lhdz = std::round(newX2Suit.LeftDeadZonePercent);
-		int rhdz = std::round(newX2Suit.RightDeadZonePercent);
+		int lhdz = std::round(newX2Suit.joystick_LH.DeadZonePercent);
+		int rhdz = std::round(newX2Suit.joystick_RH.DeadZonePercent);
 		if (m_bIsLeftHand)
 		{
 			ui->HS_JSDeadZone_LH->setValue(lhdz);
@@ -608,12 +608,12 @@ void h2JoystickWidget::onHS_JSDeadZone_LH_Released()
 	{
 		if (m_bIsLeftHand)
 		{
-			newX2Suit.LeftDeadZonePercent =
+			newX2Suit.joystick_LH.DeadZonePercent =
 				ui->HS_JSDeadZone_LH->value();
 		}
 		else if (m_bIsRightHand)
 		{
-			newX2Suit.RightDeadZonePercent =
+			newX2Suit.joystick_RH.DeadZonePercent =
 				ui->HS_JSDeadZone_LH->value();
 		}
 
