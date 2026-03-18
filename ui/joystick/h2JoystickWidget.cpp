@@ -131,16 +131,15 @@ void h2JoystickWidget::readGloveConfigFileToUI(void)
 {
 	unsigned int m_sn = m_gloveSN;
 	/*加载配置文件中的配置*/
-	h2GloveMgr newX2Suit;
-	//m_x2SuitMgr = ((x2SuitMgr *)(MCAPP::Ins()->g_x2SuitMgr));
-	bool isFind = H2_SDK_getCurrentX2SuitBySn(m_sn, newX2Suit);
+	KHHS32JoystickMessage_TypeDef newX2Suit;
+	bool isFind = H2_SDK_getJoystickBySn(m_sn, newX2Suit);
 	if (!isFind)
 		return;
 
 	{
 		//配置文件中的死区 读到界面上
-		int lhdz = std::round(newX2Suit.joystick_LH->DeadZonePercent);
-		int rhdz = std::round(newX2Suit.joystick_RH->DeadZonePercent);
+		int lhdz = std::round(newX2Suit.joystick_LH.DeadZonePercent);
+		int rhdz = std::round(newX2Suit.joystick_RH.DeadZonePercent);
 		if (m_bIsLeftHand)
 		{
 			ui->HS_JSDeadZone_LH->setValue(lhdz);
@@ -602,22 +601,21 @@ void h2JoystickWidget::onHS_JSDeadZone_LH_Changed(int value)
 void h2JoystickWidget::onHS_JSDeadZone_LH_Released()
 {
 	//保存
-	h2GloveMgr newX2Suit;
-	bool isFind = H2_SDK_getCurrentX2SuitBySn(m_gloveSN, newX2Suit);
+	KHHS32JoystickMessage_TypeDef newX2Suit;
+	bool isFind = H2_SDK_getJoystickBySn(m_gloveSN, newX2Suit);
 	if (isFind)
 	{
 		if (m_bIsLeftHand)
 		{
-			newX2Suit.joystick_LH->DeadZonePercent =
+			newX2Suit.joystick_LH.DeadZonePercent =
 				ui->HS_JSDeadZone_LH->value();
 		}
 		else if (m_bIsRightHand)
 		{
-			newX2Suit.joystick_RH->DeadZonePercent =
+			newX2Suit.joystick_RH.DeadZonePercent =
 				ui->HS_JSDeadZone_LH->value();
 		}
-
-		H2_SDK_updateX2SuitMgrVec(m_gloveSN, newX2Suit);
+		H2_SDK_updateJoystickVec(m_gloveSN, newX2Suit);
 	}
 	else
 	{

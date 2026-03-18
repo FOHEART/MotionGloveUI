@@ -109,8 +109,9 @@ h2JoystickCali::~h2JoystickCali()
 void h2JoystickCali::restoreCaliValueFromConfig(void)
 {
 	//保存
-	h2GloveMgr newX2Suit;
-	bool isFind = H2_SDK_getCurrentX2SuitBySn(m_sn, newX2Suit);
+	//h2GloveMgr newX2Suit;
+	KHHS32JoystickMessage_TypeDef newX2Suit;
+	bool isFind = H2_SDK_getJoystickBySn(m_sn, newX2Suit);
 	if (isFind)
 	{
 
@@ -118,14 +119,14 @@ void h2JoystickCali::restoreCaliValueFromConfig(void)
 		{
 #if 1
 			H2_SDK_setJoystick_leftHand_centerCaliValue(m_sn,
-				newX2Suit.joystick_LH->JSCenterX,
-				newX2Suit.joystick_LH->JSCenterY);
+				newX2Suit.joystick_LH.JSCenterX,
+				newX2Suit.joystick_LH.JSCenterY);
 
 			H2_SDK_setJoystick_leftHand_minMaxCaliValue(m_sn,
-				newX2Suit.joystick_LH->JSMinX,
-				newX2Suit.joystick_LH->JSMaxX,
-				newX2Suit.joystick_LH->JSMinY,
-				newX2Suit.joystick_LH->JSMaxY
+				newX2Suit.joystick_LH.JSMinX,
+				newX2Suit.joystick_LH.JSMaxX,
+				newX2Suit.joystick_LH.JSMinY,
+				newX2Suit.joystick_LH.JSMaxY
 			);
 #endif
 		}
@@ -133,14 +134,14 @@ void h2JoystickCali::restoreCaliValueFromConfig(void)
 		{
 #if 1
 			H2_SDK_setJoystick_rightHand_centerCaliValue(m_sn,
-				newX2Suit.joystick_RH->JSCenterX,
-				newX2Suit.joystick_RH->JSCenterY);
+				newX2Suit.joystick_LH.JSCenterX,
+				newX2Suit.joystick_LH.JSCenterY);
 
 			H2_SDK_setJoystick_rightHand_minMaxCaliValue(m_sn,
-				newX2Suit.joystick_RH->JSMinX,
-				newX2Suit.joystick_RH->JSMaxX,
-				newX2Suit.joystick_RH->JSMinY,
-				newX2Suit.joystick_RH->JSMaxY
+				newX2Suit.joystick_LH.JSMinX,
+				newX2Suit.joystick_LH.JSMaxX,
+				newX2Suit.joystick_LH.JSMinY,
+				newX2Suit.joystick_LH.JSMaxY
 			);
 #endif
 		}
@@ -188,13 +189,13 @@ void h2JoystickCali::on_caliTimer_timeout()
 							&xCenterCalivalue, &yCenterCaliValue);
 						{
 							//保存
-							h2GloveMgr newX2Suit;
-							bool isFind = H2_SDK_getCurrentX2SuitBySn(m_sn, newX2Suit);
+							KHHS32JoystickMessage_TypeDef newX2Suit;
+							bool isFind = H2_SDK_getJoystickBySn(m_sn, newX2Suit);
 							if (isFind)
 							{
-								newX2Suit.joystick_LH->JSCenterX = xCenterCalivalue;
-								newX2Suit.joystick_RH->JSCenterY = yCenterCaliValue;
-								H2_SDK_updateX2SuitMgrVec(m_sn, newX2Suit);
+								newX2Suit.joystick_LH.JSCenterX = xCenterCalivalue;
+								newX2Suit.joystick_LH.JSCenterY = yCenterCaliValue;
+								H2_SDK_updateJoystickVec(m_sn, newX2Suit);
 							}
 							else
 							{
@@ -209,13 +210,13 @@ void h2JoystickCali::on_caliTimer_timeout()
 							&xCenterCalivalue, &yCenterCaliValue);
 						{
 							//保存
-							h2GloveMgr newX2Suit;
-							bool isFind = H2_SDK_getCurrentX2SuitBySn(m_sn, newX2Suit);
+							KHHS32JoystickMessage_TypeDef newX2Suit;
+							bool isFind = H2_SDK_getJoystickBySn(m_sn, newX2Suit);
 							if (isFind)
 							{
-								newX2Suit.joystick_RH->JSCenterX = xCenterCalivalue;
-								newX2Suit.joystick_RH->JSCenterY = yCenterCaliValue;
-								H2_SDK_updateX2SuitMgrVec(m_sn, newX2Suit);
+								newX2Suit.joystick_RH.JSCenterX = xCenterCalivalue;
+								newX2Suit.joystick_RH.JSCenterY = yCenterCaliValue;
+								H2_SDK_updateJoystickVec(m_sn, newX2Suit);
 							}
 							else
 							{
@@ -267,15 +268,15 @@ void h2JoystickCali::on_caliTimer_timeout()
 
 						{
 							//保存
-							h2GloveMgr newX2Suit;
-							bool isFind = H2_SDK_getCurrentX2SuitBySn(m_sn, newX2Suit);
+							KHHS32JoystickMessage_TypeDef newX2Suit;
+							bool isFind = H2_SDK_getJoystickBySn(m_sn, newX2Suit);
 							if (isFind)
 							{
-								newX2Suit.joystick_LH->JSMinX = xMinCalivalue;
-								newX2Suit.joystick_LH->JSMaxX = xMaxCaliValue;
-								newX2Suit.joystick_LH->JSMinY = yMinCalivalue;
-								newX2Suit.joystick_LH->JSMaxY = yMaxCaliValue;
-								H2_SDK_updateX2SuitMgrVec(m_sn, newX2Suit);
+								newX2Suit.joystick_LH.JSMinX = xMinCalivalue;
+								newX2Suit.joystick_LH.JSMaxX = xMaxCaliValue;
+								newX2Suit.joystick_LH.JSMinY = yMinCalivalue;
+								newX2Suit.joystick_LH.JSMaxY = yMaxCaliValue;
+								H2_SDK_updateJoystickVec(m_sn, newX2Suit);
 							}
 							else
 							{
@@ -293,15 +294,15 @@ void h2JoystickCali::on_caliTimer_timeout()
 
 						{
 							//保存
-							h2GloveMgr newX2Suit;
-							bool isFind = H2_SDK_getCurrentX2SuitBySn(m_sn, newX2Suit);
+							KHHS32JoystickMessage_TypeDef newX2Suit;
+							bool isFind = H2_SDK_getJoystickBySn(m_sn, newX2Suit);
 							if (isFind)
 							{
-								newX2Suit.joystick_RH->JSMinX = xMinCalivalue;
-								newX2Suit.joystick_RH->JSMaxX = xMaxCaliValue;
-								newX2Suit.joystick_RH->JSMinY = yMinCalivalue;
-								newX2Suit.joystick_RH->JSMaxY = yMaxCaliValue;
-								H2_SDK_updateX2SuitMgrVec(m_sn, newX2Suit);
+								newX2Suit.joystick_RH.JSMinX = xMinCalivalue;
+								newX2Suit.joystick_RH.JSMaxX = xMaxCaliValue;
+								newX2Suit.joystick_RH.JSMinY = yMinCalivalue;
+								newX2Suit.joystick_RH.JSMaxY = yMaxCaliValue;
+								H2_SDK_updateJoystickVec(m_sn, newX2Suit);
 							}
 							else
 							{
