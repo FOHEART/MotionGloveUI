@@ -167,10 +167,9 @@ void h2GloveDeviceTreeContainerWidget::onScanTimerTimeout()
 			w->setSerialNumber(sn);
 			
 			char nameBuf[32] = { 0 };
-			unsigned int nameLen = 0;
-			int getNameRet=H2_SDK_getGloveName(sn, nameBuf, &nameLen);
-			if(getNameRet == 0 && nameLen > 0) {
-				std::string gloveName(nameBuf, nameLen);
+			int getNameRet = H2_SDK_getGloveName(sn, nameBuf);
+			if (getNameRet == 0 && nameBuf[0] != '\0') {
+				std::string gloveName(nameBuf);
 				w->setDeviceName(QString::fromStdString(gloveName));
 			}
 			else

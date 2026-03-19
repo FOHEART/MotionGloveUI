@@ -640,8 +640,14 @@ void h2Widget::initUI()
 	}
 #else
 
-#endif
+#endif 
 
+
+	ui->PB_openUnityPort->setVisible(false);
+	ui->PB_closeUnityPort->setVisible(false);
+	ui->PB_unityWindowConfig->setVisible(false);
+
+	
 
 	CarbonUIClass::applyRadioStyle(ui->RB_freeMode, CarbonUIClass::Radio_LeftRound, 64);
 	CarbonUIClass::applyRadioStyle(ui->RB_lockMode, CarbonUIClass::Radio_Rectangle, 64);
