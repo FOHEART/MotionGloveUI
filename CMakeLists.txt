@@ -62,11 +62,11 @@ find_package(Qt5 REQUIRED COMPONENTS Core Network Gui Widgets )
 option(XSTYPES_FETCH_VIA_SSH "Fetch xstypes_x via SSH (requires configured SSH key)" OFF)
 if (XSTYPES_FETCH_VIA_SSH)
   set(CARBONUI_GIT_REPOSITORY "git@github.com:FOHEART/CarbonUI.git")
-  set(H2SDK_GIT_REPOSITORY "git@github.com:FOHEART/h2sdk.git")
+  set(H2SDK_GIT_REPOSITORY "git@github.com:FOHEART/MotionGloveLLSDK.git")
   set(GLOVESTEAMDRIVER_GIT_REPOSITORY "git@github.com:FOHEART/GloveSteamDriver.git")
 else()
   set(CARBONUI_GIT_REPOSITORY "https://github.com/FOHEART/CarbonUI.git")
-  set(H2SDK_GIT_REPOSITORY "https://github.com/FOHEART/h2sdk.git")
+  set(H2SDK_GIT_REPOSITORY "https://github.com/FOHEART/MotionGloveLLSDK.git")
   set(GLOVESTEAMDRIVER_GIT_REPOSITORY "https://github.com/FOHEART/GloveSteamDriver.git")
 endif()
 
@@ -83,7 +83,7 @@ CPMAddPackage(
     UPDATE_DISCONNECTED 1)
 
 CPMAddPackage(
-    NAME h2sdk
+    NAME MotionGloveLLSDK
     GIT_REPOSITORY ${H2SDK_GIT_REPOSITORY}
     GIT_TAG main
      # Prevent update attempts that require deleting the existing source dir.
