@@ -84,6 +84,7 @@ void h2Widget::setSNAndAN(const unsigned int& suitNumber3E,
 {
 	setActorName(actorName);
 	setSn(suitNumber3E);
+	printf("setSNAndAN: suitNumber3E=%u, actorName=%s\n", suitNumber3E, actorName.c_str());
 	//m_liveOrReplayIndex = liveOrReplayIndex;
 	//只有第一套可以连接openglove
 	int globalIndex = 0;
@@ -172,32 +173,7 @@ void h2Widget::setSNAndAN(const unsigned int& suitNumber3E,
 		QObject::connect(h2MonitorTimer, SIGNAL(timeout()), this, SLOT(onH2MonitorTimer()));
 		h2MonitorTimer->start(1000 / h2MonitorTimerHz);
 		onH2MonitorTimer();
-
-		//ui->labelSelActor->setText(QString::fromStdString(actorName));
-
 		readGloveConfigFileToUI();
-
-		/*在实时模式下  将人物的出生位置分开*/
-		//SeprateLiveGloves();
-
-		{
-			//这里写入h2glove的序列号
-			h2GloveMgr newX2Suit;
-			bool isFind = H2_SDK_getCurrentX2SuitBySn(m_sn, newX2Suit);
-			if (!isFind)
-			{
-				newX2Suit.SN = m_sn;
-				H2_SDK_updateX2SuitMgrVec(m_sn, newX2Suit);
-			}
-			else
-			{
-
-
-				printf(" ");
-			}
-
-		
-		}
 	}
 
 }

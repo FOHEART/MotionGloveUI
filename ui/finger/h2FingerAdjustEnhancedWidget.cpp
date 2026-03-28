@@ -63,18 +63,29 @@ h2FingerAdjustEnhancedWidget::~h2FingerAdjustEnhancedWidget()
 {
 }
 
+void h2FingerAdjustEnhancedWidget::ensureCollapserInstalled()
+{
+	if (m_collapserInstalled)
+	{
+		return;
+	}
+
+	QGroupBoxCollapser::installIntoGroupBox(ui.GBX_fingerAngleLockYaw, 0, true);
+	m_collapserInstalled = true;
+}
+
 void h2FingerAdjustEnhancedWidget::setIsLeftHand(bool val)
 {
 	m_bIsLeftHand = val;
 	ui.GBX_fingerAngleLockYaw->setTitle(QObject::tr("左手"));
-	QGroupBoxCollapser::installIntoGroupBox(ui.GBX_fingerAngleLockYaw, 0, true);
+	ensureCollapserInstalled();
 }
 
 void h2FingerAdjustEnhancedWidget::setIsRightHand(bool val)
 {
 	m_bIsRightHand = val;
 	ui.GBX_fingerAngleLockYaw->setTitle(QObject::tr("右手"));
-	QGroupBoxCollapser::installIntoGroupBox(ui.GBX_fingerAngleLockYaw, 0, true);
+	ensureCollapserInstalled();
 }
 
 void h2FingerAdjustEnhancedWidget::setIsEnable(bool val)

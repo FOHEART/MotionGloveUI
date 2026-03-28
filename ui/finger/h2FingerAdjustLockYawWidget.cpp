@@ -63,13 +63,22 @@ h2FingerAdjustLockYawWidget::~h2FingerAdjustLockYawWidget()
 {
 }
 
+void h2FingerAdjustLockYawWidget::ensureCollapserInstalled()
+{
+	if (m_collapserInstalled)
+	{
+		return;
+	}
+
+	QGroupBoxCollapser::installIntoGroupBox(ui.GBX_fingerAngleLockYaw, 0, true);
+	m_collapserInstalled = true;
+}
+
 void h2FingerAdjustLockYawWidget::setIsLeftHand(bool val)
 {
 	m_bIsLeftHand = val;
 	ui.GBX_fingerAngleLockYaw->setTitle(QObject::tr("左手"));
-
-
-	QGroupBoxCollapser::installIntoGroupBox(ui.GBX_fingerAngleLockYaw, 0, true);
+	ensureCollapserInstalled();
 
 }
 
@@ -79,7 +88,7 @@ void h2FingerAdjustLockYawWidget::setIsRightHand(bool val)
 	
 	ui.GBX_fingerAngleLockYaw->setTitle(QObject::tr("右手"));
 	
-	QGroupBoxCollapser::installIntoGroupBox(ui.GBX_fingerAngleLockYaw, 0, true);
+	ensureCollapserInstalled();
 
 }
 

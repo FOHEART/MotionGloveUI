@@ -43,7 +43,10 @@ private slots:
 	void  onSliderThumbFigureAngleZChanged(int value);
 	void onSliderThumbFigureAngleZReleased();
 private:
+	void ensureCollapserInstalled();
+
 	Ui::h2FingerAdjustFreeModeWidget ui;
+	bool m_collapserInstalled = false;
 
 	unsigned int m_gloveSN = 0;
 	bool m_bIsLeftHand = false;

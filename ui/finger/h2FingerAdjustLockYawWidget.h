@@ -61,7 +61,10 @@ protected:
 //	void signalLeftHandConfigChanged();
 
 private:
+	void ensureCollapserInstalled();
+
 	Ui::h2FingerAdjustLockYawWidget ui;
+	bool m_collapserInstalled = false;
 	unsigned int m_gloveSN = 0;
 	bool m_bIsLeftHand = false;
 	bool m_bIsRightHand = false;
