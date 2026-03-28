@@ -254,10 +254,7 @@ set(PROJECT_MOC_HEADERS
   # ui/skeleton/
   "${CMAKE_CURRENT_SOURCE_DIR}/ui/skeleton/h2SkeletonWidget.h"
   # inc/
-  "${CMAKE_CURRENT_SOURCE_DIR}/inc/h2UnityWindowConfig.h"
-  "${CMAKE_CURRENT_SOURCE_DIR}/inc/h2UnityWindowMgr.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/inc/h2GloveSepMgr.h"
-  "${CMAKE_CURRENT_SOURCE_DIR}/inc/h2UnityEmbededDialog.h"
 )
 
 # Windows-only headers: Q_OBJECT is inside #ifdef _WIN32 in these files

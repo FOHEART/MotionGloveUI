@@ -18,10 +18,8 @@
 #include "ui/steamvr/h2SteamVRMonitorWidget.h"
 #include "ui/skeleton/h2SkeletonWidget.h"
 #include "ui/h2Notusable.h"
-#include "../inc/h2UnityEmbededDialog.h"
 #include "ui/gesture/h2GestureDisplay.h"
 #include "../inc/h2GloveSepMgr.h"
-#include "../inc/h2UnityWindowMgr.h"
 #include <QButtonGroup>
 
 #include "CarbonUIClass.h"
@@ -33,7 +31,7 @@
 #else
 
 #endif
-#include "h2UnityWindowConfig.h"
+
 
 h2Widget::h2Widget(QWidget* parent)
 	: QWidget(parent)
@@ -76,23 +74,6 @@ h2Widget::~h2Widget()
 		m_gestureContainer = 0;
 	}
 
-#ifdef _WIN32
-	libH2SteamDriver_stop_LocalUnityPort();
-#else
-
-#endif
-
-	if (m_unityPortWidget)
-	{
-		delete m_unityPortWidget;
-		m_unityPortWidget = nullptr;
-	}
-
-	if (m_unityPortWindow)
-	{
-		delete m_unityPortWindow;
-		m_unityPortWindow = nullptr;
-	}
 
 	delete ui;
 	ui = nullptr;
@@ -215,10 +196,7 @@ void h2Widget::setSNAndAN(const unsigned int& suitNumber3E,
 				printf(" ");
 			}
 
-			if (newX2Suit.AutoOpenUnityWindow)
-			{
-				on_PB_openUnityPort_clicked();
-			}
+		
 		}
 	}
 
@@ -387,41 +365,6 @@ void h2Widget::on_PB_indexSimuDebug_RH_clicked()
 
 }
 
-
-void h2Widget::on_PB_openUnityPort_clicked()
-{
-	std::string currentDir = GetLocalDllDirectory();
-	std::string unityPath_lowQuality = currentDir + "\\Resources\\unity3dport\\foheart_hmax_u3d_port.exe";
-	std::string unityPath_highQuality = currentDir + "\\Resources\\unity3dport\\foheart_hmax_u3d_port.exe";
-	std::string unityPath;
-
-
-	h2GloveMgr newX2Suit;
-	bool isFind = H2_SDK_getCurrentX2SuitBySn(m_sn, newX2Suit);
-	if (isFind)
-	{
-		if (newX2Suit.UnityDisplayQuality == 0)
-		{
-			unityPath = unityPath_lowQuality;
-		}
-		else if (newX2Suit.UnityDisplayQuality == 1)
-		{
-			unityPath = unityPath_highQuality;
-		}
-	}
-	else
-	{
-		//没找到 不可能出现这种情况
-		printf(" ");
-	}
-
-	struct stat buffer;
-	if (stat(unityPath.c_str(), &buffer) == 0)
-	{
-		launchUnityApp(unityPath);
-	}
-}
-
 /*
 清除layout中的所有控件
 */
@@ -444,124 +387,6 @@ void clearLayout(QLayout* layout)
 		}
 		delete item;                    // 删除布局项
 	}
-}
-void h2Widget::on_PB_closeUnityPort_clicked()
-{
-	if (unityProcess && unityProcess->state() == QProcess::Running)
-	{
-		unityProcess->kill();
-		unityProcess->waitForFinished();
-	}
-	clearLayout(ui->HL_unity);
-
-
-	ui->PB_openUnityPort->setEnabled(true);
-	ui->PB_closeUnityPort->setEnabled(false);
-}
-
-void h2Widget::on_PB_unityWindowConfig_clicked()
-{
-	QWidget* m_unityPortConfigWidget = nullptr;
-	if (m_unityPortConfigWidget == nullptr)
-	{
-		m_unityPortConfigWidget = new h2UnityWindowConfig(this);
-		((h2UnityWindowConfig*)m_unityPortConfigWidget)->setAttribute(Qt::WA_DeleteOnClose); // 设置关闭时自动删除
-		((h2UnityWindowConfig*)m_unityPortConfigWidget)->setGloveSN(m_sn);
-		((h2UnityWindowConfig*)m_unityPortConfigWidget)->setModal(true);
-		((h2UnityWindowConfig*)m_unityPortConfigWidget)->setWindowTitle("设置");
-	}
-	//h2UnityWindowConfig* t_cali = new h2UnityWindowConfig(this);
-
-	((h2UnityWindowConfig*)m_unityPortConfigWidget)->show();
-}
-
-void h2Widget::launchUnityApp(std::string s)
-{
-	if (unityProcess && unityProcess->state() == QProcess::Running)
-	{
-		return;
-	}
-	if (unityProcess)
-	{
-		delete unityProcess;
-		unityProcess = nullptr;
-	}
-
-	//QString program = "cmd";
-	//QStringList arguments;
-	//arguments << "/C" << "start" << "/MIN" << QString::fromStdString(s);
-	QStringList arguments;
-
-	unityProcess = new QProcess(this);
-	unityProcess->start(QString::fromStdString(s), arguments);
-	//unityProcess->start(program, arguments);
-
-	// Wait a little to let Unity create its main window, then embed it
-//	QTimer::singleShot(2000, this, &h2Widget::embedUnityWindow);
-
-	h2GloveMgr newX2Suit;
-	bool isFind = H2_SDK_getCurrentX2SuitBySn(m_sn, newX2Suit);
-	if (isFind)
-	{
-		if (newX2Suit.PopoutUnityWindow)
-		{
-			ui->PB_openUnityPort->setEnabled(true);
-			ui->PB_closeUnityPort->setEnabled(true);
-		}
-		else
-		{
-			if (m_h2UnityWindowMgr == 0)
-			{
-				m_h2UnityWindowMgr = new h2UnityWindowMgr(this);
-			}
-			((h2UnityWindowMgr*)m_h2UnityWindowMgr)->startMonitorUnityWindow(m_unityExeName, 1);
-
-			QObject::connect(
-				(h2UnityWindowMgr*)m_h2UnityWindowMgr,
-				&h2UnityWindowMgr::signalFoundUnityWindow,
-				this,
-				&h2Widget::embedUnityWindow
-			);
-			ui->PB_openUnityPort->setEnabled(false);
-			ui->PB_closeUnityPort->setEnabled(true);
-		}
-	}
-	else
-	{
-		//没找到 不可能出现这种情况
-		printf(" ");
-	}
-
-}
-
-void h2Widget::embedUnityWindow()
-{
-#ifdef _WIN32
-	std::wstring wstr(m_unityExeName.begin(), m_unityExeName.end());
-	// Return LPCWSTR
-	WId winId = (WId)FindWindow(NULL, wstr.c_str());
-	if (winId == 0)
-	{
-		//不太可能发生 因为已经在m_h2UnityWindowMgr中发现了
-		return;
-	}
-
-	QWindow* window = QWindow::fromWinId(winId);
-	// 显示窗口并立即最小化
-	//window->showMinimized();
-	// 创建一个QWidget容器来容纳QWindow
-	QWidget* container = QWidget::createWindowContainer(window, this); // 'this' 指向当前的父级QWidget
-
-	// 设置容器的最小尺寸
-	// NOTE: A hard minimum size here affects parent minimumSizeHint and can prevent dock from shrinking.
-	container->setMinimumSize(0, 0);
-
-	// 如果有现成的布局，则直接添加；否则创建一个新的布局并将容器加入其中
-	ui->HL_unity->addWidget(container);
-#else
-
-#endif
-
 }
 
 
@@ -1205,23 +1030,4 @@ void h2Widget::setRightJoystickWidgetVisible(bool isVisible)
 #endif
 
 }
-#ifdef _WIN32
 
-void ProcessWorker::startProcess()
-{
-
-	QProcess* process = new QProcess(this);
-	QObject::connect(process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(handleProcessFinished()));
-	// 连接其他必要的信号与槽...
-	std::string currentDir = GetLocalDllDirectory();
-	std::string unityPath = currentDir + "/Resources/unity3dpor/foheart_hmax_u3d_port.exe";
-
-	struct stat buffer;
-	if (stat(unityPath.c_str(), &buffer) == 0)
-	{
-		//process->start(QString::fromStdString(unityPath), QStringList() << "arg1" << "arg2");
-		process->start(QString::fromStdString(unityPath), QStringList());
-	}
-
-}
-#endif

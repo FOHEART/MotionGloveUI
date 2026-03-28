@@ -49,25 +49,11 @@ private slots:
     void on_PB_indexSimuDebug_LH_clicked();
     void on_PB_indexSimuDebug_RH_clicked();
 
-    /*
-    Unity高清渲染窗口
-    */
-    void on_PB_openUnityPort_clicked();
-    void on_PB_closeUnityPort_clicked();
-
-    /*
-    Unity高清渲染窗口窗口配置
-    */
-    void on_PB_unityWindowConfig_clicked();
 
     //uart
     void on_PB_uartOpen_clicked();
     void on_PB_uartDetect_clicked();
 
-    void launchUnityApp(std::string s);
-
-
-    void embedUnityWindow();
 private:
     Ui::h2Widget* ui = nullptr;
     QWidget* WIG_fingerAdjustFreeMode_LH = 0;
@@ -155,54 +141,4 @@ private:
 
   
 };
-#ifdef _WIN32
-class ProcessWorker : public QObject
-{
-    Q_OBJECT
-public:
-    ProcessWorker() {}
-    ~ProcessWorker() {}
-    std::string GetLocalDllDirectory()
-    {
-        std::string ret;
-        // 创建一个足够大的字符数组来保存路径
-        char dllPath[260] = { 0 };
-        HMODULE hModule = GetModuleHandle(NULL);
-        if (hModule != NULL)
-        {
-            if (GetModuleFileNameA(hModule, dllPath, sizeof(dllPath)))
-            {
-                std::string ws(dllPath);
-                size_t pos = ws.find_last_of("\\");
-                if (pos != std::string::npos)
-                {
-                    // Extract the directory part of the path
-                    ws = ws.substr(0, pos);
-                }
-                ret = ws;
-                //std::cout << "DLL Path: " << dllPath << std::endl;
-            }
-            else
-            {
-                //std::cerr << "Failed to get DLL path." << std::endl;
-            }
-        }
-        else
-        {
-            //std::cerr << "Failed to get module handle." << std::endl;
-        }
-        return ret;
-    }
-public slots:
-    void startProcess();
-   
 
-private slots:
-    void handleProcessFinished()
-    {
-        // 处理完成后的逻辑...
-    }
-};
-#else
-
-#endif
