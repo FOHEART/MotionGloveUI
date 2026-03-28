@@ -1,12 +1,10 @@
 ﻿#include "../include/h2GloveDeviceTreeWidget.h"
 #include "ui_h2GloveDeviceTreeWidget.h"
+
 #include <QtGui/QPixmap>
 #include <QtGui/QFont>
 #include <QtCore/QEvent>
 #include <QtGui/QMouseEvent>
-
-// module-level global indicating whether a widget is selected
-static bool g_h2GloveWidgetSelected = false;
 
 h2GloveDeviceTreeWidget::h2GloveDeviceTreeWidget(QWidget *parent)
 	: QWidget(parent),
@@ -25,7 +23,6 @@ h2GloveDeviceTreeWidget::h2GloveDeviceTreeWidget(QWidget *parent)
 	// set a themed border with rounded corners on the container widget only (dark theme)
 	if (ui->widget) {
 		ui->widget->setObjectName("h2GloveFrame");
-		ui->widget->setStyleSheet("#h2GloveFrame { border: 1px solid #818996; border-radius: 10px; background: rgb(43,46,61); }");
 		// install event filter to catch hover and click
 		ui->widget->installEventFilter(this);
 	}
@@ -80,6 +77,7 @@ h2GloveDeviceTreeWidget::h2GloveDeviceTreeWidget(QWidget *parent)
 		ui->LBL_right->setStyleSheet("border: none; background: transparent; color: #DCDCDC;");
 	}
 
+	
 	// Load default image
 	setDefaultDeviceImage();
 	setCreateIndexGlobal(2);
@@ -89,12 +87,20 @@ h2GloveDeviceTreeWidget::h2GloveDeviceTreeWidget(QWidget *parent)
 	updateRightImage();
 	updateLeftBatteryImage();
 	updateRightBatteryImage();
+	updateToolTip();
+	applyFrameStyle();
 }
 
 h2GloveDeviceTreeWidget::~h2GloveDeviceTreeWidget()
 {
 	delete ui;
 	ui = nullptr;
+}
+
+void h2GloveDeviceTreeWidget::setSerialNumber(unsigned int sn)
+{
+	m_sn = sn;
+	updateToolTip();
 }
 
 void h2GloveDeviceTreeWidget::setIconSize(const QSize &size)
@@ -119,26 +125,21 @@ bool h2GloveDeviceTreeWidget::eventFilter(QObject *watched, QEvent *event)
 	if (watched == ui->widget) {
 		switch (event->type()) {
 		case QEvent::Enter:
-			// hover background similar to dark.qss hover
-			ui->widget->setStyleSheet("#h2GloveFrame { border: 1px solid #818996; border-radius: 10px; background-color: #58616B; }");
+			m_isHovered = true;
+			applyFrameStyle();
 			return true;
 		case QEvent::Leave:
-			// if globally selected keep selected color, otherwise themed background
-			if (g_h2GloveWidgetSelected) {
-				ui->widget->setStyleSheet("#h2GloveFrame { border: 1px solid #818996; border-radius: 10px; background-color: rgba(50,120,200,0.4); }");
-			} else {
-				ui->widget->setStyleSheet("#h2GloveFrame { border: 1px solid #818996; border-radius: 10px; background: rgb(43,46,61); }");
-			}
+			m_isHovered = false;
+			applyFrameStyle();
 			return true;
 		case QEvent::MouseButtonPress:
 		{
 			QMouseEvent *me = static_cast<QMouseEvent*>(event);
 			if (me->button() == Qt::LeftButton) {
-				setSelected(true);
 				// emit selection signal with relevant info
 				unsigned int suitNum = m_sn;
 				QString actorName = m_deviceName;
-			emit suitSelectedLive(suitNum, actorName.toStdString());
+				emit suitSelectedLive(suitNum, actorName.toStdString());
 			}
 			return true;
 		}
@@ -164,6 +165,28 @@ void h2GloveDeviceTreeWidget::setDeviceImage(const QString &path)
 	}
 }
 
+void h2GloveDeviceTreeWidget::applyFrameStyle()
+{
+	if (!ui || !ui->widget)
+	{
+		return;
+	}
+
+	QString background = "rgb(43,46,61)";
+	if (m_isSelected)
+	{
+		background = "rgba(50,120,200,0.6)";
+	}
+	else if (m_isHovered)
+	{
+		background = "#58616B";
+	}
+
+	ui->widget->setStyleSheet(
+		QString("#h2GloveFrame { border: 1px solid #818996; border-radius: 10px; background-color: %1; }")
+			.arg(background));
+}
+
 void h2GloveDeviceTreeWidget::setDeviceImage(const QPixmap &pixmap)
 {
 	if (!ui->LBL_devNameImg)
@@ -174,6 +197,19 @@ void h2GloveDeviceTreeWidget::setDeviceImage(const QPixmap &pixmap)
 		ui->LBL_devNameImg->setScaledContents(false);
 	} else {
 		ui->LBL_devNameImg->clear();
+	}
+}
+
+void h2GloveDeviceTreeWidget::updateToolTip()
+{
+	const QString tooltip = QString::fromUtf8("序列号：%1")
+		.arg(QString::number(m_sn, 16).toUpper());
+
+	setToolTip(tooltip);
+	if (ui && ui->widget)
+	{
+		ui->widget->setToolTip(tooltip);
+	
 	}
 }
 
@@ -428,22 +464,16 @@ void h2GloveDeviceTreeWidget::updateRightBatteryImage()
 // implement selection accessors
 void h2GloveDeviceTreeWidget::setSelected(bool selected)
 {
-	if(g_h2GloveWidgetSelected == selected)
+	if (m_isSelected == selected)
 		return;
 
-	g_h2GloveWidgetSelected = selected;
-	if (!ui->widget)
-		return;
-	if (g_h2GloveWidgetSelected) {
-		ui->widget->setStyleSheet("#h2GloveFrame { border: 1px solid #818996; border-radius: 10px; background-color: rgba(50,120,200,0.6); }");
-	} else {
-		ui->widget->setStyleSheet("#h2GloveFrame { border: 1px solid #818996; border-radius: 10px; background: rgb(43,46,61); }");
-	}
+	m_isSelected = selected;
+	applyFrameStyle();
 }
 
 bool h2GloveDeviceTreeWidget::isSelected() const
 {
-	return g_h2GloveWidgetSelected;
+	return m_isSelected;
 }
 
 void h2GloveDeviceTreeWidget::setBatteryLabelSize(const QSize& size)

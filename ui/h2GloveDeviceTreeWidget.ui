@@ -14,6 +14,9 @@
    <string>h2GloveDeviceTreeWidget</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item row="0" column="0">
     <widget class="QWidget" name="widget" native="true">
      <layout class="QGridLayout" name="gridLayout_3">

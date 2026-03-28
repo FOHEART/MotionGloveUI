@@ -106,11 +106,11 @@ void h2Widget::setSNAndAN(const unsigned int& suitNumber3E,
 	((h2FingerAdjustLockYawWidget*)WIG_fingerAdjustLockYaw_RH)->setGloveSN(m_sn);
 	((h2FingerAdjustLockYawWidget*)WIG_fingerAdjustLockYaw_RH)->setIsRightHand(true);
 	((h2FingerAdjustLockYawWidget*)WIG_fingerAdjustLockYaw_RH)->readGloveConfigFileToUI();
-	//((h2FingerAdjustLockYawWidget*)WIG_fingerAdjustLockYaw_RH)->setShowConfigItemHeader(false);
 
 	((h2FingerAdjustEnhancedWidget*)WIG_fingerAdjustEnhanced_LH)->setGloveSN(m_sn);
 	((h2FingerAdjustEnhancedWidget*)WIG_fingerAdjustEnhanced_LH)->setIsLeftHand(true);
 	((h2FingerAdjustEnhancedWidget*)WIG_fingerAdjustEnhanced_LH)->readGloveConfigFileToUI();
+	
 	((h2FingerAdjustEnhancedWidget*)WIG_fingerAdjustEnhanced_RH)->setGloveSN(m_sn);
 	((h2FingerAdjustEnhancedWidget*)WIG_fingerAdjustEnhanced_RH)->setIsRightHand(true);
 	((h2FingerAdjustEnhancedWidget*)WIG_fingerAdjustEnhanced_RH)->readGloveConfigFileToUI();

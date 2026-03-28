@@ -56,7 +56,11 @@ void h2GloveDeviceTreeContainerWidget::addDeviceTreeWidget(QWidget *widget)
 	m_layout->addWidget(widget);
 	// if the widget is a h2GloveDeviceTreeWidget, emit deviceWidgetAdded
 	h2GloveDeviceTreeWidget* w = qobject_cast<h2GloveDeviceTreeWidget*>(widget);
-	if (w) emit deviceWidgetAdded(w);
+	if (w) {
+		connect(w, &h2GloveDeviceTreeWidget::suitSelectedLive,
+			this, &h2GloveDeviceTreeContainerWidget::onDeviceWidgetSelected);
+		emit deviceWidgetAdded(w);
+	}
 
 	// restore bottom spacer
 	m_layout->addStretch(1);
@@ -81,7 +85,14 @@ bool h2GloveDeviceTreeContainerWidget::removeDeviceTreeWidget(QWidget *widget, b
 	{
 		// emit removed
 		h2GloveDeviceTreeWidget* gw = qobject_cast<h2GloveDeviceTreeWidget*>(w);
-		if (gw) emit deviceWidgetRemoved(gw);
+		if (gw) {
+			if (m_selectedWidget == gw) {
+				m_selectedWidget = nullptr;
+			}
+			disconnect(gw, &h2GloveDeviceTreeWidget::suitSelectedLive,
+				this, &h2GloveDeviceTreeContainerWidget::onDeviceWidgetSelected);
+			emit deviceWidgetRemoved(gw);
+		}
 
 		w->setParent(nullptr);
 		if (deleteWidget)
@@ -115,7 +126,14 @@ void h2GloveDeviceTreeContainerWidget::clearDeviceTreeWidgets(bool deleteWidgets
 		{
 			// emit removed
 			h2GloveDeviceTreeWidget* gw = qobject_cast<h2GloveDeviceTreeWidget*>(w);
-			if (gw) emit deviceWidgetRemoved(gw);
+			if (gw) {
+				if (m_selectedWidget == gw) {
+					m_selectedWidget = nullptr;
+				}
+				disconnect(gw, &h2GloveDeviceTreeWidget::suitSelectedLive,
+					this, &h2GloveDeviceTreeContainerWidget::onDeviceWidgetSelected);
+				emit deviceWidgetRemoved(gw);
+			}
 
 			w->setParent(nullptr);
 			if (deleteWidgets)
@@ -224,6 +242,34 @@ void h2GloveDeviceTreeContainerWidget::slotAddDeviceTreeWidget(QWidget *widget)
 void h2GloveDeviceTreeContainerWidget::slotRemoveDeviceTreeWidget(QWidget *widget)
 {
 	removeDeviceTreeWidget(widget, true);
+}
+
+void h2GloveDeviceTreeContainerWidget::onDeviceWidgetSelected(
+	const unsigned int& suitNum, const std::string& actorName)
+{
+	Q_UNUSED(suitNum);
+	Q_UNUSED(actorName);
+
+	h2GloveDeviceTreeWidget* widget = qobject_cast<h2GloveDeviceTreeWidget*>(sender());
+	selectDeviceTreeWidget(widget);
+}
+
+void h2GloveDeviceTreeContainerWidget::selectDeviceTreeWidget(h2GloveDeviceTreeWidget* widget)
+{
+	if (!widget) {
+		return;
+	}
+
+	for (auto& pair : m_deviceMap) {
+		h2GloveDeviceTreeWidget* current = pair.second;
+		if (!current) {
+			continue;
+		}
+
+		current->setSelected(current == widget);
+	}
+
+	m_selectedWidget = widget;
 }
 
 void h2GloveDeviceTreeContainerWidget::applyContainerStyle()

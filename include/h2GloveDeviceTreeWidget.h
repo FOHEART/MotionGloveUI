@@ -40,7 +40,7 @@ public:
 	void setRightBattery(int level);
 	int rightBattery() const;
 
-	void setSerialNumber(unsigned int  sn) { m_sn = sn; }
+	void setSerialNumber(unsigned int  sn);
 	unsigned int serialNumber() const { return m_sn; }
 
 	void setCreateIndexGlobal(int index);
@@ -64,8 +64,12 @@ protected:
 	bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
+	void applyFrameStyle();
+
 	Ui::h2GloveDeviceTreeWidget* ui = nullptr;
 	QString m_deviceName;
+	bool m_isHovered = false;
+	bool m_isSelected = false;
 	bool m_isLeftOnline=false;
 	bool m_isRightOnline=false;
 	int m_leftBattery=0;
@@ -85,6 +89,7 @@ private:
 	// update left/right battery image based on m_leftBattery/m_rightBattery
 	void updateLeftBatteryImage();
 	void updateRightBatteryImage();
+	void updateToolTip();
 
 signals:
 	void suitSelectedLive(const unsigned int& suitNum,

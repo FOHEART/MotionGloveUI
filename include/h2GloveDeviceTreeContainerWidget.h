@@ -39,11 +39,15 @@ private slots:
 	// queued helpers to ensure UI modifications happen on the main thread
 	void slotAddDeviceTreeWidget(QWidget *widget);
 	void slotRemoveDeviceTreeWidget(QWidget *widget);
+	void onDeviceWidgetSelected(const unsigned int& suitNum, const std::string& actorName);
 
 private:
+	void selectDeviceTreeWidget(class h2GloveDeviceTreeWidget* widget);
+
 	Ui::h2GloveDeviceTreeContainerWidget* ui = nullptr;
 	QVBoxLayout *m_layout = nullptr;
 	QTimer *m_scanTimer = nullptr;
+	class h2GloveDeviceTreeWidget* m_selectedWidget = nullptr;
 	// map from serial number to widget pointer
 	std::map<unsigned int, class h2GloveDeviceTreeWidget*> m_deviceMap;
 
