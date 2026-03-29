@@ -175,7 +175,7 @@ void h2GloveDeviceTreeWidget::applyFrameStyle()
 	QString background = "rgb(43,46,61)";
 	if (m_isSelected)
 	{
-		background = "rgba(50,120,200,0.6)";
+		background = "rgba(0,158,232,0.6)";
 	}
 	else if (m_isHovered)
 	{
