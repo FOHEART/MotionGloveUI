@@ -18,6 +18,7 @@
 #include "ui/steamvr/h2SteamVRMonitorWidget.h"
 #include "ui/skeleton/h2SkeletonWidget.h"
 #include "ui/h2Notusable.h"
+#include "ui/h2CsvRecord.h"
 #include "ui/gesture/h2GestureDisplay.h"
 #include "../inc/h2GloveSepMgr.h"
 #include <QButtonGroup>
@@ -85,17 +86,21 @@ void h2Widget::setSNAndAN(const unsigned int& suitNumber3E,
 	setActorName(actorName);
 	setSn(suitNumber3E);
 	printf("setSNAndAN: suitNumber3E=%u, actorName=%s\n", suitNumber3E, actorName.c_str());
+	if (WIG_h2CsvRecord != 0)
+	{
+		((h2CsvRecord*)WIG_h2CsvRecord)->setSn(m_sn);
+	}
 	//m_liveOrReplayIndex = liveOrReplayIndex;
 	//只有第一套可以连接openglove
 	int globalIndex = 0;
 	H2_SDK_getCreateIndexGlobal(m_sn, &globalIndex);
 	if (globalIndex == 0)
 	{
-		H2_SDK_setOpenGloveEnable(m_sn, true, true);
+		//H2_SDK_setOpenGloveEnable(m_sn, true, true);
 	}
 	else
 	{
-		H2_SDK_setOpenGloveEnable(m_sn, false, false);
+		//H2_SDK_setOpenGloveEnable(m_sn, false, false);
 	}
 	 
 
@@ -408,6 +413,10 @@ void h2Widget::initUI()
 	WIG_h2SkeletonTree->setObjectName(QStringLiteral("WIG_h2SkeletonTree"));
 	ui->VL_skeleton->addWidget(WIG_h2SkeletonTree);
 
+	WIG_h2CsvRecord = new h2CsvRecord(this);
+	WIG_h2CsvRecord->setObjectName(QStringLiteral("WIG_h2CsvRecord"));
+	ui->VL_csv->addWidget(WIG_h2CsvRecord);
+
 #if 0
 	WIG_Joystick_LH = new h2JoystickWidget(ui->TBL_JoyStick);
 	WIG_Joystick_LH->setObjectName(QStringLiteral("WIG_Joystick_LH"));
@@ -431,23 +440,6 @@ void h2Widget::initUI()
 	WIG_h2GestureDisplay_RH = new h2GestureDisplay(ui->SA_gesture);
 	WIG_h2GestureDisplay_RH->setObjectName(QStringLiteral("WIG_h2GestureDisplay_RH"));
 	ui->HL_gloveGestureDisplay->addWidget(WIG_h2GestureDisplay_RH);
-
-#ifdef _WIN32
-	if (m_isSteamVRMonitorEnabled)
-	{
-		WIG_steamVRMonitor = new h2SteamVRMonitorWidget();
-		WIG_steamVRMonitor->setObjectName(QStringLiteral("WIG_steamVRMonitor"));
-		ui->HL_steamVRMonitor->addWidget(WIG_steamVRMonitor);
-	}
-#else
-
-#endif 
-
-
-	ui->PB_openUnityPort->setVisible(false);
-	ui->PB_closeUnityPort->setVisible(false);
-	ui->PB_unityWindowConfig->setVisible(false);
-
 	
 
 	CarbonUIClass::applyRadioStyle(ui->RB_freeMode, CarbonUIClass::Radio_LeftRound, 64);

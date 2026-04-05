@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>301</width>
-    <height>787</height>
+    <width>293</width>
+    <height>764</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,7 +26,7 @@
    <property name="bottomMargin">
     <number>0</number>
    </property>
-   <item row="6" column="0" colspan="2">
+   <item row="3" column="0" colspan="2">
     <widget class="QGroupBox" name="GBX_FR">
      <property name="title">
       <string>帧率</string>
@@ -61,9 +61,9 @@
       </sizepolicy>
      </property>
      <property name="currentIndex">
-      <number>3</number>
+      <number>2</number>
      </property>
-     <widget class="QWidget" name="tab_1">
+     <widget class="QWidget" name="tab_config">
       <attribute name="title">
        <string>设置</string>
       </attribute>
@@ -99,8 +99,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>293</width>
-            <height>663</height>
+            <width>285</width>
+            <height>687</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -238,11 +238,11 @@
         <number>0</number>
        </property>
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_3"/>
+        <layout class="QVBoxLayout" name="VL_csv"/>
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_2">
+     <widget class="QWidget" name="tab_gesture">
       <attribute name="title">
        <string>手势识别</string>
       </attribute>
@@ -278,8 +278,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>293</width>
-            <height>663</height>
+            <width>285</width>
+            <height>687</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_5">
@@ -309,63 +309,7 @@
      </widget>
     </widget>
    </item>
-   <item row="2" column="0" colspan="2">
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QPushButton" name="PB_openUnityPort">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>高清渲染窗口</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="PB_closeUnityPort">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>关闭</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="PB_unityWindowConfig">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>配置</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item row="3" column="0" colspan="2">
-    <layout class="QHBoxLayout" name="HL_unity"/>
-   </item>
-   <item row="5" column="0" colspan="2">
-    <layout class="QHBoxLayout" name="HL_steamVRMonitor"/>
-   </item>
   </layout>
-  <zorder>GBX_FR</zorder>
-  <zorder></zorder>
-  <zorder></zorder>
-  <zorder>TW_main</zorder>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>
