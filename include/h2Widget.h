@@ -73,11 +73,12 @@ private:
     QWidget* WIG_h2GestureDisplay_LH = 0;
     QWidget* WIG_h2GestureDisplay_RH = 0;
 
-    QWidget* WIG_steamVRMonitor = 0;
+	QWidget* WIG_steamVRMonitor = 0;
 
-    QObject* m_h2UnityWindowMgr = 0;
+	QObject* m_h2UnityWindowMgr = 0;
 
 	QWidget* WIG_h2SkeletonTree = 0;
+	QWidget* WIG_h2CsvRecord = 0;
 
 
 private:

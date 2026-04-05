@@ -234,6 +234,7 @@ set(PROJECT_MOC_HEADERS
   "${CMAKE_CURRENT_SOURCE_DIR}/include/h2StreamConfigWidget.h"
   # ui/ (flat)
   "${CMAKE_CURRENT_SOURCE_DIR}/ui/h2CSVConfig.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ui/h2CsvRecord.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/ui/h2NetBroadcastWidget.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/ui/h2IndexSimuWidget.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/ui/h2Notusable.h"
