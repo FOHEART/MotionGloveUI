@@ -24,10 +24,10 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineEdit"/>
+      <widget class="QLineEdit" name="LE_csvRecordDir"/>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="PB_setCsvRecordDir">
        <property name="text">
         <string>更改</string>
        </property>

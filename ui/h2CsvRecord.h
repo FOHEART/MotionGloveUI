@@ -15,6 +15,9 @@ public:
 	void setSn(unsigned int sn);
 
 private:
+	void syncCsvRecordDirToUi();
+	void onSetCsvRecordDirClicked();
+
 	Ui::h2CsvRecordClass ui;
 	unsigned int m_sn = 0;
 };
