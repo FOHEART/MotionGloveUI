@@ -14,17 +14,21 @@
    <string>h2CsvRecord</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <item row="3" column="0">
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>文件名称：</string>
+     </property>
+    </widget>
+   </item>
    <item row="1" column="0">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>目录：</string>
+      <widget class="QLineEdit" name="LE_csvRecordDir">
+       <property name="enabled">
+        <bool>false</bool>
        </property>
       </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="LE_csvRecordDir"/>
      </item>
      <item>
       <widget class="QPushButton" name="PB_setCsvRecordDir">
@@ -35,7 +39,7 @@
      </item>
     </layout>
    </item>
-   <item row="3" column="0">
+   <item row="6" column="0">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -48,17 +52,42 @@
      </property>
     </spacer>
    </item>
-   <item row="0" column="0">
-    <widget class="QLabel" name="label">
+   <item row="4" column="0">
+    <widget class="QLabel" name="LBL_fileName">
      <property name="text">
-      <string>录制CSV文件：</string>
+      <string/>
      </property>
     </widget>
    </item>
    <item row="2" column="0">
-    <widget class="QLabel" name="label_3">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QPushButton" name="PB_startRecord">
+       <property name="text">
+        <string>录制</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="PB_stopRecord">
+       <property name="text">
+        <string>停止</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
      <property name="text">
-      <string>文件名称：</string>
+      <string>录制CSV文件路径：</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QPushButton" name="PB_openFileDir">
+     <property name="text">
+      <string>打开文件路径</string>
      </property>
     </widget>
    </item>
