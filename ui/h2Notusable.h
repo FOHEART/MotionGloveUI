@@ -11,6 +11,9 @@ public:
 	h2Notusable(QWidget *parent = nullptr);
 	~h2Notusable();
 
+	// Retranslate UI strings when language changes
+	void retranslateUI();
+
 private:
 	Ui::h2NotusableClass ui;
 };

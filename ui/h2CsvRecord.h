@@ -37,6 +37,11 @@ public:
 	 * @param sn Suit serial number
 	 */
 	void setSn(unsigned int sn);
+	void setupLanguageChangeConnection();
+	void setLanguage(const QString& lang);
+
+private slots:
+	void retranslateUI();
 
 private:
 	/**
@@ -72,5 +77,6 @@ private:
 
 	Ui::h2CsvRecordClass ui;
 	unsigned int m_sn = 0;
+	QString m_language = "zh";
 };
 

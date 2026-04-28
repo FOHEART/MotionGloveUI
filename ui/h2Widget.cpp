@@ -1,6 +1,8 @@
 ﻿#pragma execution_character_set("utf-8")
 
 #include <QtGui/QWindow>
+#include <QtCore/QDebug>
+#include <QtWidgets/QLabel>
 #include <cmath>
 #include "../include/h2Widget.h"
 #include "ui_h2Widget.h"
@@ -33,6 +35,39 @@
 
 #endif
 
+namespace
+{
+void setStyledRadioText(QRadioButton* radioButton, const QString& text)
+{
+	if (!radioButton)
+	{
+		return;
+	}
+
+	radioButton->setText("");
+	QLabel* centerLabel = radioButton->findChild<QLabel*>(
+		radioButton->objectName() + QStringLiteral("_label"), Qt::FindDirectChildrenOnly);
+	if (centerLabel)
+	{
+		centerLabel->setText(text);
+	}
+	else
+	{
+		radioButton->setText(text);
+	}
+	if (radioButton->style())
+	{
+		radioButton->style()->unpolish(radioButton);
+		radioButton->style()->polish(radioButton);
+	}
+	radioButton->update();
+	if (centerLabel)
+	{
+		centerLabel->update();
+	}
+}
+}
+
 
 h2Widget::h2Widget(QWidget* parent)
 	: QWidget(parent)
@@ -43,6 +78,8 @@ h2Widget::h2Widget(QWidget* parent)
 	// set background and a 1px border with color #212121
 	//setStyleSheet("background-color: #3b3b3b; border-top: 1px solid #212121; border-left: 1px solid #212121; border-bottom: 1px solid #212121; border-right: none;");
 
+	// Update tab page titles based on language
+	retranslateUI();
 
 	initUI();
 	updateUartPorts();
@@ -298,8 +335,8 @@ void h2Widget::onH2MonitorTimer()
 		&leftHandFrameRate,
 		&rightHandFrameRate);
 
-	ui->LBL_leftHandFR->setText(QString::number(leftHandFrameRate) + " fps");
-	ui->LBL_rightHandFR->setText(QString::number(rightHandFrameRate) + " fps");
+	ui->LBL_leftHandFR->setText(QString::number(leftHandFrameRate) + tr(" fps / fps"));
+	ui->LBL_rightHandFR->setText(QString::number(rightHandFrameRate) + tr(" fps / fps"));
 
 	//printf("%d %d\r\n", leftHandFrameRate, rightHandFrameRate);
 }
@@ -335,7 +372,7 @@ void h2Widget::on_PB_indexSimuDebug_LH_clicked()
 	layout->addWidget(t_cali);
 
 	QDialog* dlg = new QDialog();
-	dlg->setWindowTitle("模拟Index调试");
+	dlg->setWindowTitle(tr("模拟Index调试 / Index Simulation Debug"));
 	dlg->setLayout(layout);
 	t_cali->updateUI();
 	dlg->show();
@@ -442,9 +479,9 @@ void h2Widget::initUI()
 	ui->HL_gloveGestureDisplay->addWidget(WIG_h2GestureDisplay_RH);
 	
 
-	CarbonUIClass::applyRadioStyle(ui->RB_freeMode, CarbonUIClass::Radio_LeftRound, 64);
-	CarbonUIClass::applyRadioStyle(ui->RB_lockMode, CarbonUIClass::Radio_Rectangle, 64);
-	CarbonUIClass::applyRadioStyle(ui->RB_mixMode, CarbonUIClass::Radio_RightRound, 64);
+	CarbonUIClass::applyRadioStyle(ui->RB_freeMode, CarbonUIClass::Radio_LeftRound, 64+16);
+	CarbonUIClass::applyRadioStyle(ui->RB_lockMode, CarbonUIClass::Radio_Rectangle, 64+16);
+	CarbonUIClass::applyRadioStyle(ui->RB_mixMode, CarbonUIClass::Radio_RightRound, 64+16);
 	// Create a button group for capture mode radio buttons so they are mutually exclusive
 	QButtonGroup* capModeGroup = new QButtonGroup(this);
 	// If the UI has these radio buttons, add them to the group with explicit ids
@@ -999,3 +1036,62 @@ void h2Widget::setRightJoystickWidgetVisible(bool isVisible)
 
 }
 
+
+void h2Widget::setFingerWidgetsLanguage(const QString& lang)
+{
+	// Set language for all finger adjustment widgets
+	if (WIG_fingerAdjustEnhanced_LH) {
+		static_cast<h2FingerAdjustEnhancedWidget*>(WIG_fingerAdjustEnhanced_LH)->setLanguage(lang);
+	}
+	if (WIG_fingerAdjustEnhanced_RH) {
+		static_cast<h2FingerAdjustEnhancedWidget*>(WIG_fingerAdjustEnhanced_RH)->setLanguage(lang);
+	}
+	if (WIG_fingerAdjustFreeMode_LH) {
+		static_cast<h2FingerAdjustFreeModeWidget*>(WIG_fingerAdjustFreeMode_LH)->setLanguage(lang);
+	}
+	if (WIG_fingerAdjustFreeMode_RH) {
+		static_cast<h2FingerAdjustFreeModeWidget*>(WIG_fingerAdjustFreeMode_RH)->setLanguage(lang);
+	}
+	if (WIG_fingerAdjustLockYaw_LH) {
+		static_cast<h2FingerAdjustLockYawWidget*>(WIG_fingerAdjustLockYaw_LH)->setLanguage(lang);
+	}
+	if (WIG_fingerAdjustLockYaw_RH) {
+		static_cast<h2FingerAdjustLockYawWidget*>(WIG_fingerAdjustLockYaw_RH)->setLanguage(lang);
+	}
+}
+
+void h2Widget::setTabPageLanguage(const QString& lang)
+{
+	m_language = lang;
+	if (WIG_h2CsvRecord) {
+		static_cast<h2CsvRecord*>(WIG_h2CsvRecord)->setLanguage(lang);
+	}
+	retranslateUI();
+}
+
+void h2Widget::retranslateUI()
+{
+	if (!ui || !ui->TW_main) return;
+
+	if (m_language == "en") {
+		if (ui->GBX_FR) ui->GBX_FR->setTitle("Frame Rate");
+		ui->TW_main->setTabText(0, "Settings");
+		ui->TW_main->setTabText(1, "Skeleton");
+		ui->TW_main->setTabText(2, "CSV");
+		ui->TW_main->setTabText(3, "Gesture");
+
+		setStyledRadioText(ui->RB_freeMode, "Free Mode");
+		setStyledRadioText(ui->RB_lockMode, "Finger Lock");
+		setStyledRadioText(ui->RB_mixMode, "Mix Mode");
+	} else {
+		if (ui->GBX_FR) ui->GBX_FR->setTitle("帧率");
+		ui->TW_main->setTabText(0, "设置");
+		ui->TW_main->setTabText(1, "骨骼");
+		ui->TW_main->setTabText(2, "CSV");
+		ui->TW_main->setTabText(3, "手势识别");
+
+		setStyledRadioText(ui->RB_freeMode, "自由模式");
+		setStyledRadioText(ui->RB_lockMode, "分指锁定");
+		setStyledRadioText(ui->RB_mixMode, "混合模式");
+	}
+}

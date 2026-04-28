@@ -30,6 +30,10 @@ public:
 	设置是否显示配置项目左侧的标签
 	*/
 	void setShowConfigItemHeader(bool isShow);
+	void setupLanguageChangeConnection();
+	
+	// Set language explicitly ("en" or "zh")
+	void setLanguage(const QString& lang);
 
 private slots:
 	void on_PB_rotResetLockYaw_clicked();
@@ -50,6 +54,8 @@ private slots:
 	void  onSliderThumbFigureAngleZChanged(int value);
 	void onSliderThumbFigureAngleZReleased();
 
+private slots:
+	void retranslateUI();
 protected:
 	// Filter events to block wheel events on the stretch slider
 	bool eventFilter(QObject* obj, QEvent* ev) override;
@@ -70,8 +76,8 @@ private:
 	bool m_bIsRightHand = false;
 
 	bool m_bIsEnable = false;
-	bool m_bShowConfigItemHeader = true; //是否显示配置项目的标题标签 例如 显示“张开” “握拳” 等标签
-private:
+	bool m_bShowConfigItemHeader = true; //是否显示配置项目的标题标签 例如 显示“张开” “握拳” 等标签	
+	QString m_language = "zh";  // Current language ("en" or "zh")private:
 	std::string GetLocalDllDirectory();
 
 };

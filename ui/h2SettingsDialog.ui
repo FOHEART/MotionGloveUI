@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>设置</string>
+   <string>设置 / Settings</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="leftMargin">
@@ -38,14 +38,14 @@
      <item>
       <widget class="QPushButton" name="PB_OK">
        <property name="text">
-        <string>确定</string>
+        <string>确定 / OK</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="PB_Cancle">
        <property name="text">
-        <string>取消</string>
+        <string>取消 / Cancel</string>
        </property>
       </widget>
      </item>

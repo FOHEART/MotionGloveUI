@@ -3,6 +3,7 @@
 #include "h2FingerAdjustFreeModeWidget.h"
 #include "CarbonUIClass.h"
 #include "groupboxcollapser.h"
+#include <QLocale>
 #ifdef _WIN32
 #include <windows.h>
 
@@ -10,6 +11,8 @@
 
 #endif
 #include "h2sdk.h"
+#include <QtCore/QMetaObject>
+#include <QtCore/QCoreApplication>
 
 h2FingerAdjustFreeModeWidget::h2FingerAdjustFreeModeWidget(QWidget* parent)
 	: QWidget(parent)
@@ -55,6 +58,9 @@ ui.PB_rotResetHandFreeMode_undo->setToolTip(QObject::tr("撤销重置"));
 
 	QObject::connect(ui.HS_thumbFigureAngleZ, SIGNAL(valueChanged(int)), this, SLOT(onSliderThumbFigureAngleZChanged(int)));
 	QObject::connect(ui.HS_thumbFigureAngleZ, SIGNAL(sliderReleased()), this, SLOT(onSliderThumbFigureAngleZReleased()));
+
+	setupLanguageChangeConnection();
+	retranslateUI();
 }
 
 h2FingerAdjustFreeModeWidget::~h2FingerAdjustFreeModeWidget()
@@ -75,15 +81,16 @@ void h2FingerAdjustFreeModeWidget::ensureCollapserInstalled()
 void h2FingerAdjustFreeModeWidget::setIsLeftHand(bool val)
 {
 	m_bIsLeftHand = val;
-
-	ui.GBX_fingerAngleFree->setTitle(QObject::tr("左手"));
+	m_bIsRightHand = !val;
+	retranslateUI();
 	ensureCollapserInstalled();
 }
 
 void h2FingerAdjustFreeModeWidget::setIsRightHand(bool val)
 {
 	m_bIsRightHand = val;
-	ui.GBX_fingerAngleFree->setTitle(QObject::tr("右手"));
+	m_bIsLeftHand = !val;
+	retranslateUI();
 	ensureCollapserInstalled();
 }
 
@@ -329,4 +336,60 @@ void h2FingerAdjustFreeModeWidget::onSliderThumbFigureAngleZReleased()
 	{
 		printf("");
 	}
+}
+
+void h2FingerAdjustFreeModeWidget::setupLanguageChangeConnection()
+{
+	for (int i = 0; i < QCoreApplication::instance()->children().size(); ++i)
+	{
+		QObject *obj = QCoreApplication::instance()->children()[i];
+		if (obj && obj->inherits("LanguageManager"))
+		{
+			connect(obj, SIGNAL(languageChanged(QString)), this, SLOT(retranslateUI()));
+			break;
+		}
+	}
+}
+
+void h2FingerAdjustFreeModeWidget::retranslateUI()
+{
+	if (&ui)
+	{
+		QString lang = m_language;  // Use stored language instead of QMetaObject lookup
+		QString handTitle;
+		if (m_bIsRightHand)
+		{
+			handTitle = (lang == "en") ? "Right Hand" : "右手";
+		}
+		else
+		{
+			handTitle = (lang == "en") ? "Left Hand" : "左手";
+		}
+
+		if (lang == "en") {
+			ui.GBX_fingerAngleFree->setTitle(handTitle);
+			ui.label->setText("Thumb Angle");
+			ui.PB_rotResetFingerFreeMode->setText("Reset Finger Angle");
+			ui.PB_rotResetHandFreeMode->setText("Reset Hand Back Angle");
+			ui.PB_rotResetFingerFreeMode_undo->setText("Undo");
+			ui.PB_rotResetFingerFreeMode_undo->setToolTip("Undo Reset");
+			ui.PB_rotResetHandFreeMode_undo->setText("Undo");
+			ui.PB_rotResetHandFreeMode_undo->setToolTip("Undo Reset");
+		} else {
+			ui.GBX_fingerAngleFree->setTitle(handTitle);
+			ui.label->setText("拇指角度");
+			ui.PB_rotResetFingerFreeMode->setText("重置手指角度");
+			ui.PB_rotResetHandFreeMode->setText("重置手背角度");
+			ui.PB_rotResetFingerFreeMode_undo->setText("撤销");
+			ui.PB_rotResetFingerFreeMode_undo->setToolTip("撤销重置");
+			ui.PB_rotResetHandFreeMode_undo->setText("撤销");
+			ui.PB_rotResetHandFreeMode_undo->setToolTip("撤销重置");
+		}
+	}
+}
+
+void h2FingerAdjustFreeModeWidget::setLanguage(const QString& lang)
+{
+	m_language = lang;
+	retranslateUI();
 }

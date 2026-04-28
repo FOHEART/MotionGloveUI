@@ -4,6 +4,9 @@
 #include "../include/h2StreamConfigWidget.h"
 #include "CarbonUIClass.h"
 #include "groupboxcollapser.h"
+#include <QtCore/QMetaObject>
+#include <QtCore/QMetaMethod>
+#include <QtCore/QCoreApplication>
 
 h2SettingsDialog::h2SettingsDialog(QWidget *parent)
 	: QDialog(parent)
@@ -23,7 +26,7 @@ h2SettingsDialog::h2SettingsDialog(QWidget *parent)
 		QWidget *tabWidget = new QWidget(); 
 		QVBoxLayout *vLayout = new QVBoxLayout(tabWidget); 
 		vLayout->addWidget(m_netBroadcastWidget);
-		ui->tabWidget->addTab(tabWidget, QString::fromUtf8("数据转发"));
+		ui->tabWidget->addTab(tabWidget, tr("Data Forwarding / 数据转发"));
 
 	}
 	{
@@ -31,8 +34,31 @@ h2SettingsDialog::h2SettingsDialog(QWidget *parent)
 		QWidget *tabWidget = new QWidget(); 
 		QVBoxLayout *vLayout = new QVBoxLayout(tabWidget); 
 		vLayout->addWidget(m_streamFormatWidget);
-		ui->tabWidget->addTab(tabWidget, QString::fromUtf8("转发格式"));
+		ui->tabWidget->addTab(tabWidget, tr("Data Format / 转发格式"));
 	}
+	
+	// Setup language change connections for child widgets
+	// Setup language change connections for child widgets
+	h2NetBroadcastWidget *broadcastWidget = qobject_cast<h2NetBroadcastWidget*>(m_netBroadcastWidget);
+	if (broadcastWidget)
+	{
+		broadcastWidget->setupLanguageChangeConnection();
+	}
+	
+	// Setup language change connection for this dialog
+	const QMetaObject *metaObj = QCoreApplication::instance()->metaObject();
+	for (int i = 0; i < QCoreApplication::instance()->children().size(); ++i)
+	{
+		QObject *obj = QCoreApplication::instance()->children()[i];
+		if (obj && obj->inherits("LanguageManager"))
+		{
+			connect(obj, SIGNAL(languageChanged(QString)), this, SLOT(retranslateUI()));
+			break;
+		}
+	}
+	
+	// Apply current language translations on initialization
+	retranslateUI();
 }
 
 h2SettingsDialog::~h2SettingsDialog()
@@ -68,4 +94,44 @@ void h2SettingsDialog::on_PB_OK_clicked()
 	((h2NetBroadcastWidget*)m_netBroadcastWidget)->writeH2StreamConfig();
 	((h2StreamConfigWidget*)m_streamFormatWidget)->writeH2StreamConfig();
 	close();
+}
+
+void h2SettingsDialog::retranslateUI()
+{
+	// Update window title with current language
+	if (this) {
+		setWindowTitle(tr("设置 / Settings"));
+	}
+	
+	// Update button texts with current language
+	if (ui) {
+		ui->PB_OK->setText(tr("确定 / OK"));
+		ui->PB_Cancle->setText(tr("取消 / Cancel"));
+	}
+	
+	// Update tab labels with current language
+	if (ui && ui->tabWidget) {
+		ui->tabWidget->setTabText(0, tr("Data Forwarding / 数据转发"));
+		ui->tabWidget->setTabText(1, tr("Data Format / 转发格式"));
+	}
+	
+	// Call retranslateUI on child widgets to update their texts
+	if (m_netBroadcastWidget) {
+		// Cast to h2NetBroadcastWidget and call retranslateUI()
+		h2NetBroadcastWidget *broadcastWidget = static_cast<h2NetBroadcastWidget*>(m_netBroadcastWidget);
+		if (broadcastWidget) {
+			broadcastWidget->retranslateUI();
+		}
+	}
+	
+	// For h2StreamConfigWidget, try to call retranslateUI if it exists
+	if (m_streamFormatWidget) {
+		// Use QMetaObject to check if retranslateUI method exists
+		const QMetaObject *metaObj = m_streamFormatWidget->metaObject();
+		int methodIndex = metaObj->indexOfMethod("retranslateUI()");
+		if (methodIndex >= 0) {
+			QMetaMethod method = metaObj->method(methodIndex);
+			method.invoke(m_streamFormatWidget, Qt::DirectConnection);
+		}
+	}
 }

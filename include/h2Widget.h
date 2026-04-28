@@ -28,6 +28,12 @@ public:
     void setActorName(std::string val) { m_actorName = val; }
     unsigned int getSn() const { return m_sn; }
     void setSn(unsigned int val) { m_sn = val; }
+    
+    // Set language for all finger adjustment widgets ("en" or "zh")
+    void setFingerWidgetsLanguage(const QString& lang);
+    
+    // Set language for tab page titles ("en" or "zh")
+    void setTabPageLanguage(const QString& lang);
 
    
 
@@ -53,6 +59,8 @@ private slots:
     //uart
     void on_PB_uartOpen_clicked();
     void on_PB_uartDetect_clicked();
+    
+    void retranslateUI();
 
 private:
     Ui::h2Widget* ui = nullptr;
@@ -117,6 +125,8 @@ private:
     QWidget* m_unityPortWidget = nullptr;
 
     bool m_isSteamVRMonitorEnabled = false;
+    
+    QString m_language = "zh";  // Current language ("en" or "zh")
 private:
     void initUI();
     /*

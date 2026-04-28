@@ -6,6 +6,7 @@
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QLabel>
+#include <QtCore/QCoreApplication>
 
 #include "CarbonUIClass.h"
 #include "groupboxcollapser.h"
@@ -42,7 +43,7 @@ h2NetBroadcastWidget::h2NetBroadcastWidget(QWidget *parent)
 
 	// Ensure 3 columns: IP / Port / Action
 	ui.IPPortListWidget->setColumnCount(3);
-	ui.IPPortListWidget->setHeaderLabels(QStringList() << "IP" << "Port" << "");
+	ui.IPPortListWidget->setHeaderLabels(QStringList() << tr("IP地址 / IP Address") << tr("端口 / Port") << "");
 	ui.IPPortListWidget->setColumnWidth(0, 170);
 	ui.IPPortListWidget->setColumnWidth(1, 170);
 	//ui.IPPortListWidget->setColumnWidth(2, 100);
@@ -50,6 +51,9 @@ h2NetBroadcastWidget::h2NetBroadcastWidget(QWidget *parent)
 	
 
 	loadLocalIPAddressFromConfigFile();
+	
+	// Apply current language translations on initialization
+	retranslateUI();
 }
 
 h2NetBroadcastWidget::~h2NetBroadcastWidget()
@@ -162,7 +166,7 @@ void h2NetBroadcastWidget::fillUDPTxFramerate()
 	for (int i = 0; i < H2_NETUDP_TXFRAMERATE_COUNT; i++)
 	{
 		QString it = QString::number(h2_netudp_txFrameRate[i]);
-		it += "Hz";
+		it += tr(" Hz");
 		ui.CBX_txFramerate->addItem(it);
 	}
 }
@@ -175,7 +179,7 @@ void h2NetBroadcastWidget::addIPPortRow(const QString &ip, const QString &port)
 	QTreeWidgetItem *rowItem = new QTreeWidgetItem(itemList);
 	ui.IPPortListWidget->addTopLevelItem(rowItem);
 
-	QPushButton *btnDelete = new QPushButton(QString::fromUtf8("删除"), ui.IPPortListWidget);
+	QPushButton *btnDelete = new QPushButton(tr("删除 / Delete"), ui.IPPortListWidget);
 	CarbonUIClass::applyButtonStyle(btnDelete, CarbonUIClass::Shape_RoundAll);
 
 	// set button height to be 2 pixels smaller than the row/container height
@@ -313,6 +317,114 @@ void h2NetBroadcastWidget::on_deleteRowButton_clicked()
 		return;
 
 	delete ui.IPPortListWidget->takeTopLevelItem(idx);
+}
+
+void h2NetBroadcastWidget::onLanguageChanged(const QString& langCode)
+{
+	Q_UNUSED(langCode);
+	retranslateUI();
+}
+
+void h2NetBroadcastWidget::retranslateUI()
+{
+	// Update all translatable UI strings from .ui file
+	// These strings are extracted from the .ui file and translated
+	
+	// Update labels - directly from .ui file
+	if (ui.label_5)
+		ui.label_5->setText(tr("设定数据转发地址 / Set Data Forwarding Address"));
+	
+	if (ui.LBL_IP)
+		ui.LBL_IP->setText(tr("IP地址： / IP Address:"));
+	
+	if (ui.LBL_port)
+		ui.LBL_port->setText(tr("端口： / Port:"));
+	
+	if (ui.LBL_freq)
+		ui.LBL_freq->setText(tr("发送帧率： / Transmission Framerate:"));
+	
+	// Update buttons
+	if (ui.addAddrBtn)
+		ui.addAddrBtn->setText(tr("添加 / Add"));
+	
+	// Update tooltips
+	if (ui.CBX_IPAddress)
+		ui.CBX_IPAddress->setToolTip(tr("目的地址 / Destination Address"));
+	if (ui.portLineEdit)
+		ui.portLineEdit->setToolTip(tr("目的端口（0~65535） / Destination Port (0~65535)"));
+	if (ui.IPPortListWidget)
+		ui.IPPortListWidget->setToolTip(tr("转发列表 / Forwarding List"));
+	
+	// Update table header labels
+	if (ui.IPPortListWidget->headerItem())
+	{
+		ui.IPPortListWidget->headerItem()->setText(0, tr("IP地址 / IP Address"));
+		ui.IPPortListWidget->headerItem()->setText(1, tr("端口 / Port"));
+	}
+	
+	// Update framerate display
+	updateFramerateDisplay();
+}
+
+void h2NetBroadcastWidget::updateFramerateDisplay()
+{
+	// Store current selection
+	int currentIndex = ui.CBX_txFramerate->currentIndex();
+	
+	// Clear and rebuild framerate items with proper translation
+	ui.CBX_txFramerate->clear();
+	for (int i = 0; i < H2_NETUDP_TXFRAMERATE_COUNT; i++)
+	{
+		QString it = QString::number(h2_netudp_txFrameRate[i]);
+		it += tr(" Hz / Hz");
+		ui.CBX_txFramerate->addItem(it);
+	}
+	
+	// Restore selection
+	if (currentIndex >= 0 && currentIndex < ui.CBX_txFramerate->count())
+		ui.CBX_txFramerate->setCurrentIndex(currentIndex);
+}
+
+void h2NetBroadcastWidget::setupLanguageChangeConnection()
+{
+	// Try to find LanguageManager singleton from QApplication
+	// LanguageManager is typically a global singleton created in main.cpp
+	QObject *app = QCoreApplication::instance();
+	if (!app)
+		return;
+	
+	// Search for LanguageManager object in the application
+	// First try direct object tree search
+	QObject *langMgr = nullptr;
+	
+	// Try to find by class name "LanguageManager"
+	for (QObject *child : app->children())
+	{
+		if (QString(child->metaObject()->className()).contains("LanguageManager"))
+		{
+			langMgr = child;
+			break;
+		}
+	}
+	
+	if (!langMgr)
+	{
+		// If not found in children, try to access through a property
+		// Check if app has a property named "LanguageManager"
+		QVariant langMgrVar = app->property("LanguageManager");
+		if (langMgrVar.canConvert<QObject*>())
+		{
+			langMgr = langMgrVar.value<QObject*>();
+		}
+	}
+	
+	if (langMgr)
+	{
+		// Use string-based connection to avoid header dependencies
+		QObject::connect(langMgr, SIGNAL(languageChanged(QString)),
+						 this, SLOT(onLanguageChanged(QString)),
+						 Qt::DirectConnection);
+	}
 }
 
 // void h2NetBroadcastWidget::on_IPPortListWidget_customContextMenuRequested(const QPoint &pos)

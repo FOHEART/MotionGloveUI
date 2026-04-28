@@ -193,7 +193,7 @@ void h2GloveDeviceTreeContainerWidget::onScanTimerTimeout()
 			else
 			{
 			
-				w->setDeviceName(QString("Glove ") + QString::number(sn));
+				w->setDeviceName(QString("Glove") + QString(" ") + QString::number(sn));
 			}
 			// set widget stylesheet: black border and 10px rounded corners
 			w->setStyleSheet("border: 1px solid black; border-radius: 10px;");
@@ -280,4 +280,15 @@ void h2GloveDeviceTreeContainerWidget::applyContainerStyle()
     // Top area: assume the UI form has a top frame named 'topFrame' in the .ui
    // style += " QFrame#topFrame { background-color: #2e2e2e; }";
     this->setStyleSheet(style);
+}
+
+void h2GloveDeviceTreeContainerWidget::retranslateUI()
+{
+	// Retranslate all contained device tree widgets
+	for (auto& pair : m_deviceMap) {
+		h2GloveDeviceTreeWidget* widget = pair.second;
+		if (widget) {
+			widget->retranslateUI();
+		}
+	}
 }

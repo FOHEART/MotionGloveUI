@@ -72,9 +72,11 @@ h2GloveDeviceTreeWidget::h2GloveDeviceTreeWidget(QWidget *parent)
 	}
 	if (ui->LBL_left) {
 		ui->LBL_left->setStyleSheet("border: none; background: transparent; color: #DCDCDC;");
+		ui->LBL_left->setText(tr("左手 / L-Hand"));
 	}
 	if (ui->LBL_right) {
 		ui->LBL_right->setStyleSheet("border: none; background: transparent; color: #DCDCDC;");
+		ui->LBL_right->setText(tr("右手 / R-Hand"));
 	}
 
 	
@@ -202,7 +204,7 @@ void h2GloveDeviceTreeWidget::setDeviceImage(const QPixmap &pixmap)
 
 void h2GloveDeviceTreeWidget::updateToolTip()
 {
-	const QString tooltip = QString::fromUtf8("序列号：%1")
+	const QString tooltip = tr("Serial Number: %1 / 序列号：%1")
 		.arg(QString::number(m_sn, 16).toUpper());
 
 	setToolTip(tooltip);
@@ -494,4 +496,18 @@ void h2GloveDeviceTreeWidget::setBatteryLabelSize(const QSize& size)
 	// Update the battery images to match the new size
 	updateLeftBatteryImage();
 	updateRightBatteryImage();
+}
+
+void h2GloveDeviceTreeWidget::retranslateUI()
+{
+	// Update tooltip with current language
+	updateToolTip();
+	
+	// Update left and right hand labels
+	if (ui->LBL_left) {
+		ui->LBL_left->setText(tr("左手 / L-Hand"));
+	}
+	if (ui->LBL_right) {
+		ui->LBL_right->setText(tr("右手 / R-Hand"));
+	}
 }

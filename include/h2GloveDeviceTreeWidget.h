@@ -59,6 +59,9 @@ public:
 	void setIconSize(const QSize &size);
 	QSize iconSize() const { return m_iconSize; }
 
+	// Retranslate UI strings when language changes
+	void retranslateUI();
+
 protected:
 	// event filter to handle mouse enter/leave/click on ui.widget
 	bool eventFilter(QObject *watched, QEvent *event) override;

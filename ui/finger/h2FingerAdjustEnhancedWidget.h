@@ -25,6 +25,10 @@ public:
 	将配置文件中的设置读出来显示到界面上
 	*/
 	void readGloveConfigFileToUI(void);
+	void setupLanguageChangeConnection();
+	
+	// Set language explicitly ("en" or "zh")
+	void setLanguage(const QString& lang);
 protected:
 	// Filter events to block wheel events on the stretch slider
 	bool eventFilter(QObject* obj, QEvent* ev) override;
@@ -46,6 +50,8 @@ private slots:
 	//---z
 	void  onSliderThumbFigureAngleZChanged(int value);
 	void onSliderThumbFigureAngleZReleased();
+private slots:
+	void retranslateUI();
 private:
 	void ensureCollapserInstalled();
 
@@ -54,8 +60,9 @@ private:
 	unsigned int m_gloveSN = 0;
 	bool m_bIsLeftHand = false;
 	bool m_bIsRightHand = false;
-
 	bool m_bIsEnable = false;
+	
+	QString m_language = "zh";  // Current language ("en" or "zh")
 
 private:
 	std::string GetLocalDllDirectory();

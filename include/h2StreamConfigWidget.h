@@ -15,10 +15,13 @@ public:
 	~h2StreamConfigWidget();
 
 	void writeH2StreamConfig(void);
-
+	void setupLanguageChangeConnection();
 
 private:
 	std::unique_ptr<Ui::h2StreamConfigWidget> ui;
 	void updateUIFromConfig(void);
+
+	private slots:
+		void retranslateUI();
 
 };

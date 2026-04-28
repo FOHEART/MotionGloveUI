@@ -3,6 +3,7 @@
 #include "h2FingerAdjustEnhancedWidget.h"
 #include "CarbonUIClass.h"
 #include "groupboxcollapser.h"
+#include <QLocale>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -11,6 +12,8 @@
 #endif
 
 #include "h2sdk.h"
+#include <QtCore/QMetaObject>
+#include <QtCore/QCoreApplication>
 
 h2FingerAdjustEnhancedWidget::h2FingerAdjustEnhancedWidget(QWidget *parent)
 	: QWidget(parent)
@@ -57,6 +60,8 @@ ui.PB_rotResetLockYaw_undo->setToolTip(QObject::tr("撤销重置"));
 	QObject::connect(ui.HS_thumbFigureAngleZ, SIGNAL(valueChanged(int)), this, SLOT(onSliderThumbFigureAngleZChanged(int)));
 	QObject::connect(ui.HS_thumbFigureAngleZ, SIGNAL(sliderReleased()), this, SLOT(onSliderThumbFigureAngleZReleased()));
 
+	setupLanguageChangeConnection();
+	retranslateUI();
 }
 
 h2FingerAdjustEnhancedWidget::~h2FingerAdjustEnhancedWidget()
@@ -77,14 +82,16 @@ void h2FingerAdjustEnhancedWidget::ensureCollapserInstalled()
 void h2FingerAdjustEnhancedWidget::setIsLeftHand(bool val)
 {
 	m_bIsLeftHand = val;
-	ui.GBX_fingerAngleLockYaw->setTitle(QObject::tr("左手"));
+	m_bIsRightHand = !val;
+	retranslateUI();
 	ensureCollapserInstalled();
 }
 
 void h2FingerAdjustEnhancedWidget::setIsRightHand(bool val)
 {
 	m_bIsRightHand = val;
-	ui.GBX_fingerAngleLockYaw->setTitle(QObject::tr("右手"));
+	m_bIsLeftHand = !val;
+	retranslateUI();
 	ensureCollapserInstalled();
 }
 
@@ -338,4 +345,52 @@ std::string h2FingerAdjustEnhancedWidget::GetLocalDllDirectory()
 #endif
 	
 	return ret;
+}
+
+void h2FingerAdjustEnhancedWidget::setupLanguageChangeConnection()
+{
+	for (int i = 0; i < QCoreApplication::instance()->children().size(); ++i)
+	{
+		QObject *obj = QCoreApplication::instance()->children()[i];
+		if (obj && obj->inherits("LanguageManager"))
+		{
+			connect(obj, SIGNAL(languageChanged(QString)), this, SLOT(retranslateUI()));
+			break;
+		}
+	}
+}
+
+void h2FingerAdjustEnhancedWidget::retranslateUI()
+{
+	if (&ui)
+	{
+		QString lang = m_language;  // Use stored language instead of QMetaObject lookup
+		QString handTitle;
+		if (m_bIsRightHand)
+		{
+			handTitle = (lang == "en") ? "Right Hand" : "右手";
+		}
+		else
+		{
+			handTitle = (lang == "en") ? "Left Hand" : "左手";
+		}
+
+		if (lang == "en") {
+			ui.GBX_fingerAngleLockYaw->setTitle(handTitle);
+			ui.label_10->setText("Fist Finger\nAngle");
+			ui.label->setText("Thumb Angle");
+			ui.PB_rotResetLockYaw->setText("Reset Hand Back Angle");
+		} else {
+			ui.GBX_fingerAngleLockYaw->setTitle(handTitle);
+			ui.label_10->setText("握拳指尖\n角度");
+			ui.label->setText("拇指角度");
+			ui.PB_rotResetLockYaw->setText("重置手背角度");
+		}
+	}
+}
+
+void h2FingerAdjustEnhancedWidget::setLanguage(const QString& lang)
+{
+	m_language = lang;
+	retranslateUI();
 }

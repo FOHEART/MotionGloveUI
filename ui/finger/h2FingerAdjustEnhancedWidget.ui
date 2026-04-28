@@ -34,9 +34,6 @@
      <property name="enabled">
       <bool>true</bool>
      </property>
-     <property name="title">
-      <string>左手</string>
-     </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
      </property>
@@ -51,9 +48,6 @@
           <property name="enabled">
            <bool>true</bool>
           </property>
-          <property name="text">
-           <string>重置手背角度</string>
-          </property>
          </widget>
         </item>
         <item>
@@ -64,9 +58,7 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
-          <property name="text">
-           <string/>
-          </property>
+
          </widget>
         </item>
        </layout>
@@ -81,10 +73,6 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
-          <property name="text">
-           <string>握拳指尖
-角度</string>
-          </property>
          </widget>
         </item>
         <item row="1" column="2">
@@ -94,9 +82,6 @@
             <width>30</width>
             <height>0</height>
            </size>
-          </property>
-          <property name="text">
-           <string>0°</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -140,9 +125,6 @@
             <height>0</height>
            </size>
           </property>
-          <property name="text">
-           <string>0°</string>
-          </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
@@ -185,9 +167,6 @@
             <height>0</height>
            </size>
           </property>
-          <property name="text">
-           <string>0°</string>
-          </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
@@ -201,9 +180,6 @@
             <height>0</height>
            </size>
           </property>
-          <property name="text">
-           <string>0°</string>
-          </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
@@ -211,9 +187,6 @@
         </item>
         <item row="1" column="0" rowspan="3">
          <widget class="QLabel" name="label">
-          <property name="text">
-           <string>拇指角度</string>
-          </property>
          </widget>
         </item>
        </layout>

@@ -4,6 +4,7 @@
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QFontMetrics>
+#include <QCoreApplication>
 #include <QObject>
 #include <QStringList>
 #include <QUrl>
@@ -46,6 +47,8 @@ h2CsvRecord::h2CsvRecord(QWidget *parent)
 	ui.LBL_fileName->setMinimumHeight(fileNameLabelHeight);
 	ui.LBL_fileName->setMaximumHeight(fileNameLabelHeight);
 
+	setupLanguageChangeConnection();
+	retranslateUI();
 	syncCsvRecordDirToUi();
 	syncRecordButtonsToUi();
 	QObject::connect(ui.PB_setCsvRecordDir, &QPushButton::clicked, this, [this]()
@@ -65,6 +68,57 @@ h2CsvRecord::~h2CsvRecord()
 void h2CsvRecord::setSn(unsigned int sn)
 {
 	m_sn = sn;
+}
+
+void h2CsvRecord::setupLanguageChangeConnection()
+{
+	if (!QCoreApplication::instance())
+	{
+		return;
+	}
+
+	for (int i = 0; i < QCoreApplication::instance()->children().size(); ++i)
+	{
+		QObject* obj = QCoreApplication::instance()->children()[i];
+		if (obj && obj->inherits("LanguageManager"))
+		{
+			connect(obj, SIGNAL(languageChanged(QString)), this, SLOT(retranslateUI()));
+			QVariant langVar = obj->property("currentLanguage");
+			if (langVar.isValid())
+			{
+				m_language = langVar.toString();
+			}
+			break;
+		}
+	}
+}
+
+void h2CsvRecord::retranslateUI()
+{
+	if (m_language == "en")
+	{
+		ui.label->setText("CSV Record Directory:");
+		ui.PB_setCsvRecordDir->setText("Change");
+		ui.PB_startRecord->setText("Record");
+		ui.PB_stopRecord->setText("Stop");
+		ui.label_3->setText("File Name:");
+		ui.PB_openFileDir->setText("Open File Directory");
+	}
+	else
+	{
+		ui.label->setText("录制CSV文件路径：");
+		ui.PB_setCsvRecordDir->setText("更改");
+		ui.PB_startRecord->setText("录制");
+		ui.PB_stopRecord->setText("停止");
+		ui.label_3->setText("文件名称：");
+		ui.PB_openFileDir->setText("打开文件路径");
+	}
+}
+
+void h2CsvRecord::setLanguage(const QString& lang)
+{
+	m_language = lang;
+	retranslateUI();
 }
 
 void h2CsvRecord::syncCsvRecordDirToUi()
@@ -88,7 +142,7 @@ void h2CsvRecord::onSetCsvRecordDirClicked()
 	const QString currentDir = ui.LE_csvRecordDir->text().trimmed();
 	const QString selectedDir = QFileDialog::getExistingDirectory(
 		this,
-		tr("Select CSV Record Directory"),
+		(m_language == "en") ? QStringLiteral("Select CSV Record Directory") : QStringLiteral("选择CSV录制目录"),
 		currentDir.isEmpty() ? QString::fromUtf8(H2_SDK_getCSVRecordFilesDir()) : currentDir);
 
 	if (selectedDir.isEmpty())

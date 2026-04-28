@@ -37,9 +37,6 @@
      <property name="enabled">
       <bool>true</bool>
      </property>
-     <property name="title">
-      <string>左手</string>
-     </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
      </property>
@@ -53,9 +50,6 @@
          <widget class="QPushButton" name="PB_rotResetLockYaw">
           <property name="enabled">
            <bool>true</bool>
-          </property>
-          <property name="text">
-           <string>重置手背角度</string>
           </property>
          </widget>
         </item>
@@ -100,9 +94,6 @@
             <height>0</height>
            </size>
           </property>
-          <property name="text">
-           <string>0°</string>
-          </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
@@ -116,9 +107,6 @@
             <height>0</height>
            </size>
           </property>
-          <property name="text">
-           <string>0°</string>
-          </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
@@ -126,10 +114,6 @@
         </item>
         <item row="1" column="0">
          <widget class="QLabel" name="LBL_figureAngleFist_hdr">
-          <property name="text">
-           <string>握拳指尖
-角度</string>
-          </property>
          </widget>
         </item>
         <item row="2" column="1">
@@ -153,9 +137,6 @@
             <height>0</height>
            </size>
           </property>
-          <property name="text">
-           <string>0°</string>
-          </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
@@ -168,9 +149,6 @@
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
-          </property>
-          <property name="text">
-           <string>指间角度</string>
           </property>
          </widget>
         </item>
@@ -194,9 +172,6 @@
             <width>30</width>
             <height>0</height>
            </size>
-          </property>
-          <property name="text">
-           <string>0°</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -240,9 +215,6 @@
             <height>0</height>
            </size>
           </property>
-          <property name="text">
-           <string>0°</string>
-          </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
@@ -250,9 +222,6 @@
         </item>
         <item row="2" column="0" rowspan="3">
          <widget class="QLabel" name="LBL_thumbFigureAngle_hdr">
-          <property name="text">
-           <string>拇指角度</string>
-          </property>
          </widget>
         </item>
        </layout>

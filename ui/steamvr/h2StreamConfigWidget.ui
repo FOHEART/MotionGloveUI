@@ -71,7 +71,7 @@
           </size>
          </property>
          <property name="title">
-          <string>数据流</string>
+           <string>数据流 / Data Stream</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -108,9 +108,6 @@
               <pointsize>10</pointsize>
              </font>
             </property>
-            <property name="text">
-             <string>二进制</string>
-            </property>
             <property name="checked">
              <bool>false</bool>
             </property>
@@ -138,9 +135,6 @@
               <pointsize>10</pointsize>
              </font>
             </property>
-            <property name="text">
-             <string>字符串</string>
-            </property>
             <property name="checked">
              <bool>true</bool>
             </property>
@@ -165,7 +159,7 @@
        <item>
         <widget class="QGroupBox" name="GBX_frame">
          <property name="title">
-          <string>帧设置</string>
+          <string>帧设置 / Frame Settings</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -173,9 +167,6 @@
          <layout class="QGridLayout" name="gridLayout_2">
           <item row="0" column="0">
            <widget class="QCheckBox" name="CBX_jumboFrame">
-            <property name="text">
-             <string>巨型帧</string>
-            </property>
            </widget>
           </item>
           <item row="0" column="2">
@@ -193,9 +184,6 @@
           </item>
           <item row="0" column="1">
            <widget class="QLabel" name="label">
-            <property name="text">
-             <string>巨型帧</string>
-            </property>
            </widget>
           </item>
          </layout>
@@ -203,15 +191,12 @@
        </item>
        <item>
         <widget class="QLabel" name="LBL_skeleton_hint">
-         <property name="text">
-          <string>双手32段骨骼模型。</string>
-         </property>
         </widget>
        </item>
        <item>
         <widget class="QGroupBox" name="GBX_loc">
          <property name="title">
-          <string>位移</string>
+          <string>位移 / Displacement</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -239,9 +224,6 @@
               <pointsize>10</pointsize>
              </font>
             </property>
-            <property name="text">
-             <string>骨骼坐标</string>
-            </property>
             <property name="checked">
              <bool>true</bool>
             </property>
@@ -249,9 +231,6 @@
           </item>
           <item>
            <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>骨骼坐标</string>
-            </property>
            </widget>
           </item>
           <item>
@@ -273,7 +252,7 @@
        <item>
         <widget class="QGroupBox" name="GBX_rot">
          <property name="title">
-          <string>旋转</string>
+          <string>旋转 / Rotation</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -290,9 +269,6 @@
           </property>
           <item>
            <widget class="QRadioButton" name="RB_skeletonQuat">
-            <property name="text">
-             <string>四元数</string>
-            </property>
             <property name="checked">
              <bool>true</bool>
             </property>
@@ -300,9 +276,6 @@
           </item>
           <item>
            <widget class="QRadioButton" name="RB_skeletonEuler">
-            <property name="text">
-             <string>欧拉角</string>
-            </property>
             <property name="checked">
              <bool>false</bool>
             </property>
@@ -327,7 +300,7 @@
        <item>
         <widget class="QGroupBox" name="GBX_rotAxis">
          <property name="title">
-          <string>骨骼旋转系</string>
+          <string>骨骼旋转系 / Skeleton Rotation System</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -344,9 +317,6 @@
           </property>
           <item>
            <widget class="QRadioButton" name="RB_skeletonLocalCoord">
-            <property name="text">
-             <string>本地坐标系</string>
-            </property>
             <property name="checked">
              <bool>true</bool>
             </property>
@@ -354,9 +324,6 @@
           </item>
           <item>
            <widget class="QRadioButton" name="RB_skeletonGlobalCoord">
-            <property name="text">
-             <string>全局坐标系</string>
-            </property>
             <property name="checked">
              <bool>false</bool>
             </property>
@@ -381,7 +348,7 @@
        <item>
         <widget class="QGroupBox" name="GBX_sensorRot">
          <property name="title">
-          <string>传感器原始旋转</string>
+          <string>传感器原始旋转 / Raw Sensor Rotation</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -398,9 +365,6 @@
           </property>
           <item>
            <widget class="QRadioButton" name="RB_rtSensorOff">
-            <property name="text">
-             <string>无</string>
-            </property>
             <property name="checked">
              <bool>true</bool>
             </property>
@@ -408,16 +372,10 @@
           </item>
           <item>
            <widget class="QRadioButton" name="RB_rtSensorQuat">
-            <property name="text">
-             <string>四元数</string>
-            </property>
            </widget>
           </item>
           <item>
            <widget class="QRadioButton" name="RB_rtSensorEuler">
-            <property name="text">
-             <string>欧拉角</string>
-            </property>
            </widget>
           </item>
           <item>
@@ -439,7 +397,7 @@
        <item>
         <widget class="QGroupBox" name="GBX_sensor">
          <property name="title">
-          <string>传感器原始数据</string>
+          <string>传感器原始数据 / Raw Sensor Data</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -462,9 +420,7 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="text">
-             <string>加速度</string>
-            </property>
+
            </widget>
           </item>
           <item>
@@ -475,9 +431,7 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="text">
-             <string>线性加速度</string>
-            </property>
+
            </widget>
           </item>
           <item>
@@ -488,9 +442,7 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="text">
-             <string>角速度</string>
-            </property>
+
            </widget>
           </item>
           <item>
@@ -501,16 +453,11 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="text">
-             <string>磁力值</string>
-            </property>
+
            </widget>
           </item>
           <item>
            <widget class="QCheckBox" name="CBX_rtSensorFlex">
-            <property name="text">
-             <string>弯曲传感器</string>
-            </property>
            </widget>
           </item>
           <item>
@@ -537,7 +484,7 @@
           </font>
          </property>
          <property name="title">
-          <string>欧拉角旋转顺序</string>
+          <string>欧拉角旋转顺序 / Euler Angle Rotation Order</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -559,9 +506,6 @@
               <pointsize>10</pointsize>
              </font>
             </property>
-            <property name="text">
-             <string>XYZ</string>
-            </property>
            </widget>
           </item>
           <item>
@@ -577,9 +521,6 @@
               <pointsize>10</pointsize>
              </font>
             </property>
-            <property name="text">
-             <string>XZY</string>
-            </property>
            </widget>
           </item>
           <item>
@@ -589,9 +530,6 @@
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
-            </property>
-            <property name="text">
-             <string>YXZ</string>
             </property>
            </widget>
           </item>
@@ -608,9 +546,6 @@
               <pointsize>10</pointsize>
              </font>
             </property>
-            <property name="text">
-             <string>YZX</string>
-            </property>
            </widget>
           </item>
           <item>
@@ -625,9 +560,6 @@
              <font>
               <pointsize>10</pointsize>
              </font>
-            </property>
-            <property name="text">
-             <string>ZXY</string>
             </property>
             <property name="checked">
              <bool>true</bool>
@@ -646,9 +578,6 @@
              <font>
               <pointsize>10</pointsize>
              </font>
-            </property>
-            <property name="text">
-             <string>ZYX</string>
             </property>
            </widget>
           </item>

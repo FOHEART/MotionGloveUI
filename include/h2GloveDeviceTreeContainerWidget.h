@@ -34,6 +34,9 @@ public:
 	// Sets the overall background color to #3b3b3b and the top area color to #2e2e2e.
 	void applyContainerStyle();
 
+	// Retranslate UI strings for all contained widgets when language changes
+	void retranslateUI();
+
 private slots:
 	void onScanTimerTimeout();
 	// queued helpers to ensure UI modifications happen on the main thread

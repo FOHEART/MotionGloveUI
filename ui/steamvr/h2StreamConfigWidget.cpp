@@ -5,6 +5,8 @@
 
 #include "CarbonUIClass.h"
 #include "groupboxcollapser.h"
+#include <QtCore/QMetaObject>
+#include <QtCore/QCoreApplication>
 
 
 
@@ -54,6 +56,20 @@ h2StreamConfigWidget::h2StreamConfigWidget(QWidget* parent)
 	CarbonUIClass::applyRadioStyle(ui->RB_zyx, CarbonUIClass::Radio_RightRound, 64);
 
 	updateUIFromConfig();
+	
+	// Setup language change connection for this widget
+	for (int i = 0; i < QCoreApplication::instance()->children().size(); ++i)
+	{
+		QObject *obj = QCoreApplication::instance()->children()[i];
+		if (obj && obj->inherits("LanguageManager"))
+		{
+			connect(obj, SIGNAL(languageChanged(QString)), this, SLOT(retranslateUI()));
+			break;
+		}
+	}
+	
+	// Apply current language translations on initialization
+	retranslateUI();
 }
 
 h2StreamConfigWidget::~h2StreamConfigWidget() = default;
@@ -180,4 +196,85 @@ void h2StreamConfigWidget::writeH2StreamConfig(void)
 	}
 
 	H2_SDK_setGloveStreamConfig(cfg);
+}
+
+void h2StreamConfigWidget::setupLanguageChangeConnection()
+{
+	for (int i = 0; i < QCoreApplication::instance()->children().size(); ++i)
+	{
+		QObject *obj = QCoreApplication::instance()->children()[i];
+		if (obj && obj->inherits("LanguageManager"))
+		{
+			connect(obj, SIGNAL(languageChanged(QString)), this, SLOT(retranslateUI()));
+			break;
+		}
+	}
+}
+
+void h2StreamConfigWidget::retranslateUI()
+{
+	// Update groupbox titles with current language
+	if (ui) {
+		ui->GBX_stream->setTitle(tr("数据流 / Data Stream"));
+		ui->GBX_frame->setTitle(tr("帧设置 / Frame Settings"));
+		ui->GBX_loc->setTitle(tr("位移 / Displacement"));
+		ui->GBX_rot->setTitle(tr("旋转 / Rotation"));
+		ui->GBX_rotAxis->setTitle(tr("骨骼旋转系 / Skeleton Rotation System"));
+		ui->GBX_sensorRot->setTitle(tr("传感器原始旋转 / Raw Sensor Rotation"));
+		ui->GBX_sensor->setTitle(tr("传感器原始数据 / Raw Sensor Data"));
+		ui->GBX_rotOrder->setTitle(tr("欧拉角旋转顺序 / Euler Angle Rotation Order"));
+	}
+	
+	// Update data stream radio button texts
+	if (ui) {
+		ui->RB_binary->setText(tr("二进制 / Binary"));
+		ui->RB_string->setText(tr("字符串 / String"));
+	}
+	
+	// Update skeleton attitude radio button texts
+	if (ui) {
+		ui->RB_skeletonQuat->setText(tr("四元数 / Quaternion"));
+		ui->RB_skeletonEuler->setText(tr("欧拉角 / Euler Angle"));
+	}
+	
+	// Update skeleton coordinate radio button texts
+	if (ui) {
+		ui->RB_skeletonLocalCoord->setText(tr("本地坐标系 / Local Coordinate System"));
+		ui->RB_skeletonGlobalCoord->setText(tr("全局坐标系 / Global Coordinate System"));
+	}
+	
+	// Update raw sensor rotation radio button texts
+	if (ui) {
+		ui->RB_rtSensorOff->setText(tr("无 / None"));
+		ui->RB_rtSensorQuat->setText(tr("四元数 / Quaternion"));
+		ui->RB_rtSensorEuler->setText(tr("欧拉角 / Euler Angle"));
+	}
+	
+	// Update euler angle rotation order texts
+	if (ui) {
+		ui->RB_xyz->setText(tr("XYZ"));
+		ui->RB_xzy->setText(tr("XZY"));
+		ui->RB_yxz->setText(tr("YXZ"));
+		ui->RB_yzx->setText(tr("YZX"));
+		ui->RB_zxy->setText(tr("ZXY"));
+		ui->RB_zyx->setText(tr("ZYX"));
+	}
+	
+	// Update checkbox texts
+	if (ui) {
+		ui->CBX_jumboFrame->setText(tr("巨型帧 / Jumbo Frame"));
+		ui->label->setText(tr("巨型帧 / Jumbo Frame"));
+		ui->CBX_displacement->setText(tr("骨骼坐标 / Skeleton Coordinates"));
+		ui->label_2->setText(tr("骨骼坐标 / Skeleton Coordinates"));
+		ui->CBX_rtSensorAccel->setText(tr("加速度 / Acceleration"));
+		ui->CBX_rtSensorLAccel->setText(tr("线性加速度 / Linear Acceleration"));
+		ui->CBX_rtSensorGyro->setText(tr("角速度 / Angular Velocity"));
+		ui->CBX_rtSensorMag->setText(tr("磁力值 / Magnetic Field"));
+		ui->CBX_rtSensorFlex->setText(tr("弯曲传感器 / Flex Sensor"));
+	}
+	
+	// Update label texts
+	if (ui) {
+		ui->LBL_skeleton_hint->setText(tr("双手32段骨骼模型。 / Dual hand 32-segment skeleton model."));
+	}
 }
