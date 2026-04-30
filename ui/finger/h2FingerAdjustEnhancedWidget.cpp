@@ -379,7 +379,7 @@ void h2FingerAdjustEnhancedWidget::retranslateUI()
 			ui.GBX_fingerAngleLockYaw->setTitle(handTitle);
 			ui.label_10->setText("Fist Finger\nAngle");
 			ui.label->setText("Thumb Angle");
-			ui.PB_rotResetLockYaw->setText("Reset Hand Back Angle");
+			ui.PB_rotResetLockYaw->setText("Reset Hand Angle");
 		} else {
 			ui.GBX_fingerAngleLockYaw->setTitle(handTitle);
 			ui.label_10->setText("握拳指尖\n角度");
