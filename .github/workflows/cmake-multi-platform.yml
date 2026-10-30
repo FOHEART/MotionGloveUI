@@ -46,6 +46,10 @@ jobs:
     # Provide the private-repo token via repository secret named XSTYPES_PAT.
     # The token must be able to read every private dependency cloned by CPM:
     # FOHEART/CarbonUI, FOHEART/MotionGloveLLSDK, FOHEART/GloveSteamDriver.
+    # For a fine-grained token that means: resource owner = FOHEART, all three
+    # repositories selected under "Repository access", Contents: Read, and the
+    # token approved by an org owner (FOHEART -> Settings -> Personal access
+    # tokens -> Pending requests). An unapproved or unlisted token yields HTTP 404.
     env:
       XSTYPES_PAT: ${{ secrets.XSTYPES_PAT }}
 
@@ -69,18 +73,62 @@ jobs:
     - name: Verify access to private dependency repos
       shell: bash
       run: |
+        # `git ls-remote` reports "Repository not found" for an invalid token, a token
+        # without access and a missing repository alike. Probe the REST API with the same
+        # token first so a failure names the actual cause (401 / 403 / 404).
+        api="https://api.github.com"
+        repos="FOHEART/CarbonUI FOHEART/MotionGloveLLSDK FOHEART/GloveSteamDriver"
+
+        api_get() { # $1 = REST path; sets REPLY_CODE / REPLY_BODY
+          local resp
+          resp=$(curl -sS -H "Authorization: Bearer ${XSTYPES_PAT}" \
+            -H "Accept: application/vnd.github+json" "${api}$1" -w '\n%{http_code}' || true)
+          REPLY_CODE=${resp##*$'\n'}
+          REPLY_BODY=${resp%$'\n'*}
+        }
+
+        api_get "/user"
+        if [ "${REPLY_CODE}" != "200" ]; then
+          echo "::error::XSTYPES_PAT is rejected by the GitHub API (GET /user -> HTTP ${REPLY_CODE}). The token is invalid, expired or revoked; create a new token and update the XSTYPES_PAT secret."
+          echo "${REPLY_BODY}" | head -c 300 | sed 's/^/       /'
+          exit 1
+        fi
+        echo "Token authenticates as: $(echo "${REPLY_BODY}" | grep -o '"login": *"[^"]*"' | head -n 1 | sed 's/.*: *"//; s/"$//')"
+
         failed=0
-        for repo in FOHEART/CarbonUI FOHEART/MotionGloveLLSDK FOHEART/GloveSteamDriver; do
-          if err=$(git ls-remote --heads "https://github.com/${repo}.git" 2>&1 >/dev/null); then
-            echo "OK   ${repo}"
-          else
-            echo "FAIL ${repo}"
-            echo "${err}" | sed 's/^/       /'
-            failed=1
-          fi
+        for repo in ${repos}; do
+          api_get "/repos/${repo}"
+          case "${REPLY_CODE}" in
+            200)
+              if git ls-remote --heads "https://github.com/${repo}.git" >/dev/null 2>&1; then
+                echo "OK   ${repo}"
+              else
+                echo "FAIL ${repo}: API granted access but 'git ls-remote' failed, so the authenticated url.insteadOf rewrite is not in effect."
+                failed=1
+              fi
+              ;;
+            404)
+              echo "FAIL ${repo} (HTTP 404): the token cannot see this repository."
+              echo "       Fine-grained token: set Repository access to include ${repo} with Contents: Read,"
+              echo "       make sure the token's resource owner is the FOHEART organization, and approve the"
+              echo "       pending request under FOHEART -> Settings -> Personal access tokens -> Pending requests."
+              echo "       Classic token: needs the 'repo' scope and membership of the FOHEART organization."
+              failed=1
+              ;;
+            403)
+              echo "FAIL ${repo} (HTTP 403): access blocked by organization policy."
+              echo "       Approve the fine-grained token for FOHEART, or authorize the classic token for SSO."
+              failed=1
+              ;;
+            *)
+              echo "FAIL ${repo} (HTTP ${REPLY_CODE})"
+              echo "${REPLY_BODY}" | head -c 300 | sed 's/^/       /'
+              failed=1
+              ;;
+          esac
         done
         if [ "${failed}" -ne 0 ]; then
-          echo "::error::XSTYPES_PAT cannot read all private dependencies. Grant it read access to FOHEART/CarbonUI, FOHEART/MotionGloveLLSDK and FOHEART/GloveSteamDriver (fine-grained PAT: select each repository + Contents: Read; classic PAT: 'repo' scope), then re-run the workflow."
+          echo "::error::XSTYPES_PAT cannot read all private dependencies. Fix the token access described above, then re-run the workflow."
           exit 1
         fi
 
