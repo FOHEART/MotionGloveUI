@@ -76,11 +76,12 @@ jobs:
           exit 1
         fi
         GIT_TOKEN_USER=$(echo "${body}" | grep -o '"login": *"[^"]*"' | head -n 1 | sed 's/.*: *"//; s/"$//')
+        token_type=$(echo "${body}" | grep -o '"type": *"[^"]*"' | head -n 1 | sed 's/.*: *"//; s/"$//')
         if [ -z "${GIT_TOKEN_USER}" ]; then
           echo "::error::Could not determine the login that owns XSTYPES_PAT."
           exit 1
         fi
-        echo "XSTYPES_PAT belongs to ${GIT_TOKEN_USER}"
+        echo "XSTYPES_PAT belongs to ${GIT_TOKEN_USER} (${token_type:-unknown})"
         echo "GIT_TOKEN_USER=${GIT_TOKEN_USER}" >> "$GITHUB_ENV"
 
         # Rewrite every HTTPS GitHub URL to an authenticated one. This is honoured by
@@ -136,11 +137,11 @@ jobs:
               ;;
           esac
 
-          # Repo metadata is readable, but git clone also needs the Contents permission;
-          # fine-grained tokens only report the repo, not its contents, without it.
-          api_get "/repos/${repo}/contents/"
+          # Repo metadata is readable, but clone/ls-remote also need the Contents
+          # permission: fine-grained tokens expose the repo, not its git data, without it.
+          api_get "/repos/${repo}/git/refs/heads"
           if [ "${REPLY_CODE}" != "200" ]; then
-            echo "FAIL ${repo}: repository is visible, but git access is denied (GET /contents -> HTTP ${REPLY_CODE})."
+            echo "FAIL ${repo}: repository is visible, but its git data is not (GET /git/refs/heads -> HTTP ${REPLY_CODE})."
             echo "       Fine-grained token: Repository permissions -> Contents -> Read-only."
             echo "${REPLY_BODY}" | head -c 200 | sed 's/^/       /'
             failed=1
@@ -148,18 +149,16 @@ jobs:
           fi
 
           if ! err=$(git ls-remote --heads "https://github.com/${repo}.git" 2>&1 >/dev/null); then
-            echo "FAIL ${repo}: Contents: Read is granted, but the git transport was refused:"
+            echo "FAIL ${repo}: git data is readable over the API, but the git transport was refused:"
             echo "${err}" | sed 's/^/       /'
-            echo "       Registered url rewrites (credentials redacted):"
-            git config --global --get-regexp '^url\..*\.insteadof$' | sed -E 's#//[^@/]+@#//***@#' | sed 's/^/         /'
-            echo "       Username probe against the direct URL:"
-            for user in "${GIT_TOKEN_USER}" x-access-token; do
-              if probe=$(git ls-remote --heads "https://${user}:${XSTYPES_PAT}@github.com/${repo}.git" 2>&1 >/dev/null); then
-                echo "         '${user}': OK"
-              else
-                echo "         '${user}': $(echo "${probe}" | head -n 1)"
-              fi
-            done
+            echo "       Basic-auth probe of the git endpoint (same credential git sends):"
+            curl -s -o /dev/null -D - -u "${GIT_TOKEN_USER}:${XSTYPES_PAT}" \
+              "https://github.com/${repo}.git/info/refs?service=git-upload-pack" \
+              | grep -iE '^(HTTP/|www-authenticate:|x-github-|x-ratelimit-)' | sed 's/^/         /'
+            echo "       git config (credentials redacted):"
+            git config --show-origin --get-regexp '^(http|credential|url)\.' 2>/dev/null \
+              | sed -E 's#(https?://)[^@/]+@#\1***@#g; s#(AUTHORIZATION: *basic +)[^ ]+#\1***#gI' \
+              | sed 's/^/         /'
             failed=1
             continue
           fi
