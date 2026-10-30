@@ -63,10 +63,30 @@ jobs:
           echo "::error::Repository secret XSTYPES_PAT is not set, cannot clone the private dependencies."
           exit 1
         fi
+
+        # A fine-grained token must be presented together with its owner's login;
+        # "x-access-token" is only guaranteed for GitHub App installation tokens and is
+        # silently ignored here, which surfaces as "Repository not found" over HTTPS.
+        resp=$(curl -sS -H "Authorization: Bearer ${XSTYPES_PAT}" \
+          -H "Accept: application/vnd.github+json" "https://api.github.com/user" -w '\n%{http_code}')
+        code=${resp##*$'\n'}
+        body=${resp%$'\n'*}
+        if [ "${code}" != "200" ]; then
+          echo "::error::XSTYPES_PAT is rejected by the GitHub API (GET /user -> HTTP ${code}). The token is invalid, expired or revoked."
+          exit 1
+        fi
+        GIT_TOKEN_USER=$(echo "${body}" | grep -o '"login": *"[^"]*"' | head -n 1 | sed 's/.*: *"//; s/"$//')
+        if [ -z "${GIT_TOKEN_USER}" ]; then
+          echo "::error::Could not determine the login that owns XSTYPES_PAT."
+          exit 1
+        fi
+        echo "XSTYPES_PAT belongs to ${GIT_TOKEN_USER}"
+        echo "GIT_TOKEN_USER=${GIT_TOKEN_USER}" >> "$GITHUB_ENV"
+
         # Rewrite every HTTPS GitHub URL to an authenticated one. This is honoured by
         # CMake/FetchContent sub-builds on all platforms, whereas ~/.netrc is ignored by
         # Git Credential Manager on Windows runners.
-        git config --global url."https://x-access-token:${XSTYPES_PAT}@github.com/".insteadOf "https://github.com/"
+        git config --global url."https://${GIT_TOKEN_USER}:${XSTYPES_PAT}@github.com/".insteadOf "https://github.com/"
         git config --global credential.interactive never
         echo "GIT_TERMINAL_PROMPT=0" >> "$GITHUB_ENV"
 
@@ -87,13 +107,7 @@ jobs:
           REPLY_BODY=${resp%$'\n'*}
         }
 
-        api_get "/user"
-        if [ "${REPLY_CODE}" != "200" ]; then
-          echo "::error::XSTYPES_PAT is rejected by the GitHub API (GET /user -> HTTP ${REPLY_CODE}). The token is invalid, expired or revoked; create a new token and update the XSTYPES_PAT secret."
-          echo "${REPLY_BODY}" | head -c 300 | sed 's/^/       /'
-          exit 1
-        fi
-        echo "Token authenticates as: $(echo "${REPLY_BODY}" | grep -o '"login": *"[^"]*"' | head -n 1 | sed 's/.*: *"//; s/"$//')"
+        echo "Token authenticates as: ${GIT_TOKEN_USER}"
 
         failed=0
         for repo in ${repos}; do
@@ -134,9 +148,18 @@ jobs:
           fi
 
           if ! err=$(git ls-remote --heads "https://github.com/${repo}.git" 2>&1 >/dev/null); then
-            echo "FAIL ${repo}: API reports Contents: Read, but the git transport was refused:"
+            echo "FAIL ${repo}: Contents: Read is granted, but the git transport was refused:"
             echo "${err}" | sed 's/^/       /'
-            echo "       Check that the url.insteadOf rewrite from the previous step is in effect."
+            echo "       Registered url rewrites (credentials redacted):"
+            git config --global --get-regexp '^url\..*\.insteadof$' | sed -E 's#//[^@/]+@#//***@#' | sed 's/^/         /'
+            echo "       Username probe against the direct URL:"
+            for user in "${GIT_TOKEN_USER}" x-access-token; do
+              if probe=$(git ls-remote --heads "https://${user}:${XSTYPES_PAT}@github.com/${repo}.git" 2>&1 >/dev/null); then
+                echo "         '${user}': OK"
+              else
+                echo "         '${user}': $(echo "${probe}" | head -n 1)"
+              fi
+            done
             failed=1
             continue
           fi
