@@ -1,4 +1,15 @@
-﻿#include "../include/h2GloveDeviceTreeWidget.h"
+﻿/**
+ * @file  h2GloveDeviceTreeWidget.cpp
+ * @brief 手套设备树控件的实现。
+ * @ingroup h2ui
+ * @version 1.0.0
+ *
+ * @details
+ * 依赖 uic 生成的 ui_*.h。
+ * 函数级说明见对应头文件，此处不再重复 @param / @return。
+ */
+
+#include "../include/h2GloveDeviceTreeWidget.h"
 #include "ui_h2GloveDeviceTreeWidget.h"
 
 #include <QtGui/QPixmap>

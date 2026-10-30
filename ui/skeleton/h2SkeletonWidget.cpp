@@ -1,4 +1,15 @@
-﻿#include "h2SkeletonWidget.h"
+﻿/**
+ * @file  h2SkeletonWidget.cpp
+ * @brief 手部骨骼显示控件的实现。
+ * @ingroup h2ui
+ * @version 1.0.0
+ *
+ * @details
+ * 控件样式统一由 CarbonUIClass 提供；界面布局由同名 .ui 文件生成。
+ * 函数级说明见对应头文件，此处不再重复 @param / @return。
+ */
+
+#include "h2SkeletonWidget.h"
 #include "common_define_glove_hw.h"
 #include <QStandardItemModel>
 #include <QAbstractItemView>

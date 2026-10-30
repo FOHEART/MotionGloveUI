@@ -1,4 +1,15 @@
-﻿#if defined(_MSC_VER) && (_MSC_VER >= 1600)
+﻿/**
+ * @file  libH2SteamDriverUI.cpp
+ * @brief Steam 驱动界面控件的实现。
+ * @ingroup h2ui
+ * @version 1.0.0
+ *
+ * @details
+ * 依赖 uic 生成的 ui_*.h。
+ * 函数级说明见对应头文件，此处不再重复 @param / @return。
+ */
+
+#if defined(_MSC_VER) && (_MSC_VER >= 1600)
 #pragma execution_character_set("utf-8")
 #endif
 

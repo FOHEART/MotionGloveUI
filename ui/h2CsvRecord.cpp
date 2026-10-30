@@ -1,3 +1,14 @@
+/**
+ * @file  h2CsvRecord.cpp
+ * @brief CSV 录制控件的实现。
+ * @ingroup h2ui
+ * @version 1.0.0
+ *
+ * @details
+ * 多语言切换由 LanguageManager 的 languageChanged 信号驱动；控件样式统一由 CarbonUIClass 提供；通过 MotionGloveLLSDK 读写设备配置；界面布局由同名 .ui 文件生成。
+ * 函数级说明见对应头文件，此处不再重复 @param / @return。
+ */
+
 #include "h2CsvRecord.h"
 #include "h2sdk.h"
 
@@ -9,24 +20,7 @@
 #include <QStringList>
 #include <QUrl>
 #include "CarbonUIClass.h"
-
-namespace
-{
-QString formatFileNameForDisplay(const QString& text, int maxCharsPerLine = 40)
-{
-	if (text.isEmpty() || maxCharsPerLine <= 0)
-	{
-		return text;
-	}
-
-	QStringList lines;
-	for (int i = 0; i < text.size(); i += maxCharsPerLine)
-	{
-		lines << text.mid(i, maxCharsPerLine);
-	}
-	return lines.join("\n");
-}
-}
+#include "core/h2TextWrap.h"
 
 h2CsvRecord::h2CsvRecord(QWidget *parent)
 	: QWidget(parent)
@@ -190,7 +184,7 @@ void h2CsvRecord::onStartRecordClicked()
 	printf("h2CsvRecord::onStartRecordClicked, sn=%u, actorName=%s, file=%s, ret=%d\r\n", m_sn, actorName, fullFileName, ret);
 	if (ret == 0)
 	{
-		ui.LBL_fileName->setText(formatFileNameForDisplay(QString::fromUtf8(fullFileName), 40));
+		ui.LBL_fileName->setText(h2core::wrapFixedWidth(QString::fromUtf8(fullFileName), 40));
 	}
 	syncRecordButtonsToUi();
 }

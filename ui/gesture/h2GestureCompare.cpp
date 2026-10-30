@@ -1,4 +1,15 @@
-﻿//#include "stdafx.h"
+﻿/**
+ * @file  h2GestureCompare.cpp
+ * @brief 手势幅度对比显示控件的实现。
+ * @ingroup h2ui
+ * @version 1.0.0
+ *
+ * @details
+ * 界面布局由同名 .ui 文件生成。
+ * 函数级说明见对应头文件，此处不再重复 @param / @return。
+ */
+
+//#include "stdafx.h"
 #include "h2GestureCompare.h"
 
 h2GestureCompare::h2GestureCompare(QWidget *parent)

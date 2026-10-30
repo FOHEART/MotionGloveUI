@@ -1,4 +1,15 @@
-﻿#include "../include/h2GloveDeviceTreeContainerWidget.h"
+﻿/**
+ * @file  h2GloveDeviceTreeContainerWidget.cpp
+ * @brief 手套设备树容器控件的实现。
+ * @ingroup h2ui
+ * @version 1.0.0
+ *
+ * @details
+ * 通过 MotionGloveLLSDK 读写设备配置；依赖 uic 生成的 ui_*.h。
+ * 函数级说明见对应头文件，此处不再重复 @param / @return。
+ */
+
+#include "../include/h2GloveDeviceTreeContainerWidget.h"
 #include "ui_h2GloveDeviceTreeContainerWidget.h"
 #include "../include/h2GloveDeviceTreeWidget.h"
 #include <QtWidgets/QLayoutItem>
@@ -148,7 +159,21 @@ void h2GloveDeviceTreeContainerWidget::clearDeviceTreeWidgets(bool deleteWidgets
 
 int h2GloveDeviceTreeContainerWidget::deviceTreeWidgetCount() const
 {
-	return m_layout ? m_layout->count() : 0;
+	if (!m_layout)
+		return 0;
+
+	// 只统计真正托管的卡片；布局末尾还有用于顶部的弹簧项，不能算进来，
+	// 否则空列表会返回 1，调用方的「暂无设备」提示永远不会出现。
+	int count = 0;
+	for (int i = 0; i < m_layout->count(); ++i)
+	{
+		QLayoutItem* item = m_layout->itemAt(i);
+		if (item && qobject_cast<h2GloveDeviceTreeWidget*>(item->widget()))
+		{
+			++count;
+		}
+	}
+	return count;
 }
 
 void h2GloveDeviceTreeContainerWidget::startDeviceScan(int intervalMs)
@@ -269,17 +294,26 @@ void h2GloveDeviceTreeContainerWidget::selectDeviceTreeWidget(h2GloveDeviceTreeW
 		current->setSelected(current == widget);
 	}
 
+	// m_deviceMap 只由扫描流程填充，通过 addDeviceTreeWidget() 手工加入的卡片不在其中，
+	// 因此再遍历一次实际子控件，保证无论哪条路径加入的卡片都能正确参与单选互斥。
+	const QList<h2GloveDeviceTreeWidget*> cards = findChildren<h2GloveDeviceTreeWidget*>();
+	for (h2GloveDeviceTreeWidget* current : cards) {
+		if (!current) {
+			continue;
+		}
+
+		current->setSelected(current == widget);
+	}
+
 	m_selectedWidget = widget;
 }
 
 void h2GloveDeviceTreeContainerWidget::applyContainerStyle()
 {
-    // Overall background
-    //QString style = "QWidget#" + this->objectName() + " { background-color: #3b3b3b; }";
-	QString style =  " { background-color: #3b3b3b; }";
-    // Top area: assume the UI form has a top frame named 'topFrame' in the .ui
-   // style += " QFrame#topFrame { background-color: #2e2e2e; }";
-    this->setStyleSheet(style);
+	// 选择器必须带上对象名：无选择器的样式表 Qt 无法解析（会打印
+	// "Could not parse stylesheet" 并整条忽略），背景色不会生效。
+	QString style = QStringLiteral("#%1 { background-color: #3b3b3b; }").arg(this->objectName());
+	this->setStyleSheet(style);
 }
 
 void h2GloveDeviceTreeContainerWidget::retranslateUI()

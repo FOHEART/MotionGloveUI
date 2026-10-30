@@ -1,4 +1,15 @@
-﻿//#include "stdafx.h"
+﻿/**
+ * @file  h2FingerAdjustFreeModeWidget.cpp
+ * @brief 手指角度调节（自由模式）面板控件的实现。
+ * @ingroup h2ui
+ * @version 1.0.0
+ *
+ * @details
+ * 多语言切换由 LanguageManager 的 languageChanged 信号驱动；控件样式统一由 CarbonUIClass 提供；通过 MotionGloveLLSDK 读写设备配置；界面布局由同名 .ui 文件生成。
+ * 函数级说明见对应头文件，此处不再重复 @param / @return。
+ */
+
+//#include "stdafx.h"
 #pragma execution_character_set("utf-8")
 #include "h2FingerAdjustFreeModeWidget.h"
 #include "CarbonUIClass.h"

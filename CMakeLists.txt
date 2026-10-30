@@ -53,7 +53,7 @@ include(cmake/qt.cmake)
 qt_standard_project_setup()
 
 # Ensure Qt5 imported targets are available for linking
-find_package(Qt5 REQUIRED COMPONENTS Core Network Gui Widgets )
+find_package(Qt5 REQUIRED COMPONENTS Core Network Gui Widgets Test)
 
 # GitHub Actions runners typically do not have an SSH deploy key configured.
 # Default to HTTPS cloning and allow opting into SSH with -DXSTYPES_FETCH_VIA_SSH=ON.
@@ -133,6 +133,31 @@ file(GLOB_RECURSE PROJECT_HEADERS CONFIGURE_DEPENDS
   "${CMAKE_CURRENT_SOURCE_DIR}/ui/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/ui/*.hpp"
 )
+
+# ########################  pure logic core  #########################
+# src/core 只依赖 Qt5::Core，无 QWidget 调用，单独编译成静态库，
+# 供库本体与 tests/ 共同链接 —— 保证被测代码与出货代码是同一份源码、同一套编译选项。
+list(FILTER PROJECT_SOURCES EXCLUDE REGEX "/src/core/")
+list(FILTER PROJECT_HEADERS EXCLUDE REGEX "/src/core/")
+
+file(GLOB_RECURSE CORE_SOURCES CONFIGURE_DEPENDS
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/core/*.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/core/*.cpp"
+)
+file(GLOB_RECURSE CORE_HEADERS CONFIGURE_DEPENDS
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/core/*.h"
+)
+
+add_library(MotionGloveUICore STATIC ${CORE_SOURCES} ${CORE_HEADERS})
+target_include_directories(MotionGloveUICore PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
+target_link_libraries(MotionGloveUICore PUBLIC Qt5::Core)
+set_target_properties(MotionGloveUICore PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+if(MSVC)
+  target_compile_options(MotionGloveUICore PRIVATE /utf-8 /MP /Zc:wchar_t)
+else()
+  target_compile_options(MotionGloveUICore PRIVATE -finput-charset=UTF-8 -fexec-charset=UTF-8)
+endif()
 
 if(MOTIONGLOVE_UI_BUILD_SHARED)
   add_library(${PROJECT_NAME} SHARED
@@ -292,6 +317,9 @@ target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_UI_FILES})
 target_link_libraries(${PROJECT_NAME} PRIVATE
   Qt5::Core Qt5::Network Qt5::Gui Qt5::Widgets 
 )
+# Link the pure logic core layer
+target_link_libraries(${PROJECT_NAME} PRIVATE MotionGloveUICore)
+
 # Link the CarbonUI target provided by CPM to the project executable
 target_link_libraries(${PROJECT_NAME} PRIVATE CarbonUI MotionGloveLLSDK)
 
@@ -299,6 +327,20 @@ if(WIN32)
   target_link_libraries(${PROJECT_NAME} PRIVATE GloveSteamDriver)
 endif()
 
+# ########################  tests  #########################
+# 作为上级工程的子项目被引入时默认关闭，避免把 GoogleTest 下载进别人的构建。
+if(NOT DEFINED MOTIONGLOVE_UI_BUILD_TESTS)
+  if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    set(_h2_tests_default ON)
+  else()
+    set(_h2_tests_default OFF)
+  endif()
+  option(MOTIONGLOVE_UI_BUILD_TESTS
+         "Build MotionGloveUI unit tests (GoogleTest + CTest)" ${_h2_tests_default})
+  unset(_h2_tests_default)
+endif()
 
-
-# TODO: Add tests and install targets if needed.
+if(MOTIONGLOVE_UI_BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(tests)
+endif()

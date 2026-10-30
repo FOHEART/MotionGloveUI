@@ -1,4 +1,15 @@
-﻿#include "h2NetBroadcastWidget.h"
+﻿/**
+ * @file  h2NetBroadcastWidget.cpp
+ * @brief UDP 广播地址配置控件的实现。
+ * @ingroup h2ui
+ * @version 1.0.0
+ *
+ * @details
+ * 多语言切换由 LanguageManager 的 languageChanged 信号驱动；控件样式统一由 CarbonUIClass 提供；通过 MotionGloveLLSDK 读写设备配置；界面布局由同名 .ui 文件生成。
+ * 函数级说明见对应头文件，此处不再重复 @param / @return。
+ */
+
+#include "h2NetBroadcastWidget.h"
 #include <QtNetwork/QNetworkInterface>
 #include <QtNetwork/QHostInfo>
 
@@ -12,6 +23,7 @@
 #include "groupboxcollapser.h"
 
 #include "h2sdk.h"
+#include "core/h2NetAddress.h"
 
 
 h2NetBroadcastWidget::h2NetBroadcastWidget(QWidget *parent)
@@ -62,7 +74,7 @@ h2NetBroadcastWidget::~h2NetBroadcastWidget()
 
 void h2NetBroadcastWidget::writeH2StreamConfig()
 {
-	QStringList addrList;
+	QStringList addrEntries;
 	for (int i = 0; i < ui.IPPortListWidget->topLevelItemCount(); i++)
 	{
 		QTreeWidgetItem *item = ui.IPPortListWidget->topLevelItem(i);
@@ -74,21 +86,18 @@ void h2NetBroadcastWidget::writeH2StreamConfig()
 		if (ip.isEmpty() || port.isEmpty())
 			continue;
 
-		addrList << (ip + ":" + port);
+		addrEntries << (ip + ":" + port);
 	}
 
-	const QString broadcastAddr = addrList.join(",");
+	const QString broadcastAddr = h2core::joinNonEmpty(addrEntries);
 
 	h2GloveStreamConfig cfg;
 	H2_SDK_getGloveStreamConfig(&cfg);
 
-	memset(cfg.BroadcastAddr, 0, sizeof(cfg.BroadcastAddr));
-	const QByteArray addrBytes = broadcastAddr.toUtf8();
-	const int copyLen = qMin<int>((int)sizeof(cfg.BroadcastAddr) - 1, addrBytes.size());
-	if (copyLen > 0)
-	{
-		memcpy(cfg.BroadcastAddr, addrBytes.constData(), (size_t)copyLen);
-	}
+	// 缓冲区放不下时按整项截断，避免写出 "ip:500" 这类半截地址
+	h2core::writeAddressSpecFixed(reinterpret_cast<char*>(cfg.BroadcastAddr),
+								  static_cast<int>(sizeof(cfg.BroadcastAddr)),
+								  broadcastAddr);
 
 	H2_SDK_setGloveStreamConfig(cfg);
 }
@@ -153,8 +162,11 @@ void h2NetBroadcastWidget::fillLocalIPAddress()
         }
     }
 }
+/** @brief 发送帧率在配置中的键名。 */
 #define H2_NETUDP_TXFRAMERATE_KEY "NetUDP/txFrameRate"
+/** @brief 发送帧率候选值的个数。 */
 #define H2_NETUDP_TXFRAMERATE_COUNT (3)
+/** @brief 发送帧率候选值，单位 Hz，依次为 60 / 30 / 15。 */
 const int h2_netudp_txFrameRate[H2_NETUDP_TXFRAMERATE_COUNT] = {
 	60,
 	60 / 2,

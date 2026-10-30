@@ -32,7 +32,7 @@ cmake --build out/build --config Release --parallel
 
 编译为动态库
 
-添加 -DMOTIONGLOVE_UI_BUILD_SHARED ON&#x20;
+添加 -DMOTIONGLOVE_UI_BUILD_SHARED ON
 
 编译为静态库
 

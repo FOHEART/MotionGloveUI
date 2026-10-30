@@ -1,4 +1,15 @@
-﻿#pragma once
+﻿/**
+ * @file  h2Widget.h
+ * @brief 主界面控件 h2Widget 的公开接口。
+ * @ingroup h2ui
+ * @version 1.0.0
+ *
+ * @details
+ * 含 Q_OBJECT，需 moc 生成元对象代码。
+ * 函数级参数与返回值说明见各函数自身的注释块。
+ */
+
+#pragma once
 #include "libh2ui_global.h"
 
 #ifdef _WIN32
@@ -17,137 +28,227 @@
 #include "h2sdk.h"
 namespace Ui { class h2Widget; }
 
+/**
+ * @brief 主界面控件：把设备状态、手指/摇杆/手势等子面板组装成一个完整界面。
+ *
+ * @details
+ * 本类是对外唯一的主入口控件，内部组合了手指角度调节、摇杆姿态、摇杆校准、
+ * 手势显示、骨骼树、CSV 录制与 SteamVR 监控等子控件，并负责：
+ *  - 按手套在线状态使能/停用相关面板（updateUIFromGloveOnlineStatus）；
+ *  - 周期刷新设备状态（onH2MonitorTimer 拉取电量、固件版本、在线状态）；
+ *  - 读写套装配置（readGloveConfigFileToUI / onGloveCaptureModeChanged）；
+ *  - 中英文切换（setTabPageLanguage / retranslateUI）；
+ *  - 可选地嵌入外部 Unity 进程窗口（m_unityExeName / unityProcess）。
+ *
+ * @note 所有接口都只能在 UI 线程调用。设备读写通过 MotionGloveLLSDK 同步完成。
+ */
 class LIBH2UI_API h2Widget : public QWidget
 {
     Q_OBJECT
 
 public:
+    /**
+     * @brief 构造主界面：创建全部子面板、启动监控定时器并回填当前配置。
+     * @param[in] parent 父控件，**可为 nullptr**。
+     */
     h2Widget(QWidget* parent = Q_NULLPTR);
+
+    /** @brief 析构：停止定时器并释放子面板、Unity 进程与界面对象。 */
     ~h2Widget();
+
+    /** @brief 读取当前演员名。@return 演员名，未设置时为空串。 */
     std::string getActorName() const { return m_actorName; }
+
+    /**
+     * @brief 设置演员名。
+     * @param[in] val 演员名，UTF-8 编码；允许空串。
+     */
     void setActorName(std::string val) { m_actorName = val; }
+
+    /** @brief 读取当前套装序列号。@return 序列号原始值，0 表示未绑定设备。 */
     unsigned int getSn() const { return m_sn; }
+
+    /**
+     * @brief 设置当前套装序列号。
+     * @param[in] val 序列号原始值，0 表示未绑定；超出有效设备号范围不会校验。
+     */
     void setSn(unsigned int val) { m_sn = val; }
     
-    // Set language for all finger adjustment widgets ("en" or "zh")
+    /**
+     * @brief 子面板语言切换：统一切换三个手指调节面板的文案。
+     * @param[in] lang 语言代码，取值 `"en"` 或 `"zh"`；其他值按中文处理。
+     */
     void setFingerWidgetsLanguage(const QString& lang);
     
-    // Set language for tab page titles ("en" or "zh")
+    /**
+     * @brief 页签语言切换：切换主界面页签与 CSV 录制面板的文案。
+     * @param[in] lang 语言代码，取值 `"en"` 或 `"zh"`；同时记录到 m_language。
+     * @post 调用后立即执行一次 retranslateUI()。
+     */
     void setTabPageLanguage(const QString& lang);
-
-   
-
 
 public slots:
 
-    /*手指的相关参数*/
+    /**
+     * @brief 手套采集模式改变时保存到当前套装配置。
+     * @param[in] index 模式索引，直接转换为 h2GloveMode_TypeDef；越界值不校验。
+     * @note 序列号为 0（未绑定设备）时直接返回，不写配置。
+     */
     void onGloveCaptureModeChanged(int index);
 
-
+    /**
+     * @brief 监控定时器回调：刷新设备在线状态、电量与固件版本等界面信息。
+     * @note 由 h2MonitorTimer 周期触发，频率由 h2MonitorTimerHz 决定（默认 1 Hz）。
+     */
     void onH2MonitorTimer();
 
-
+    /**
+     * @brief 一次性设置当前套装序列号与演员名，并同步给 CSV 录制面板。
+     * @param[in] suitNumber3E 套装序列号原始值。
+     * @param[in] actorName    演员名，UTF-8 编码。
+     */
  void setSNAndAN(const unsigned int& suitNumber3E,
         const std::string& actorName);
     //end
 private slots:
+    /** @brief 「手势配置」按钮：弹出并刷新手势容器窗口。 */
     void on_PB_gestureConfig_clicked();
+    /** @brief 「左手 Index 模拟调试」按钮：弹出左手 Index 仿真对话框。 */
     void on_PB_indexSimuDebug_LH_clicked();
+    /** @brief 「右手 Index 模拟调试」按钮。@note 当前为空实现。 */
     void on_PB_indexSimuDebug_RH_clicked();
 
-
-    //uart
+    /** @brief 「串口打开/关闭」按钮：按当前状态切换串口开关。 */
     void on_PB_uartOpen_clicked();
+    /** @brief 「串口扫描」按钮：重新枚举可用串口并刷新下拉框。 */
     void on_PB_uartDetect_clicked();
     
+    /** @brief 按 m_language 刷新主界面所有静态文案。 */
     void retranslateUI();
 
 private:
+    /** @brief uic 生成的界面对象，由析构函数负责 delete。 */
     Ui::h2Widget* ui = nullptr;
+    /** @brief 左手手指角度调节（自由模式）面板。 */
     QWidget* WIG_fingerAdjustFreeMode_LH = 0;
+    /** @brief 右手手指角度调节（自由模式）面板。 */
     QWidget* WIG_fingerAdjustFreeMode_RH = 0;
+    /** @brief 左手手指角度调节（锁定偏航）面板。 */
     QWidget* WIG_fingerAdjustLockYaw_LH = 0;
+    /** @brief 右手手指角度调节（锁定偏航）面板。 */
     QWidget* WIG_fingerAdjustLockYaw_RH = 0;
+    /** @brief 左手手指角度调节（增强模式）面板。 */
     QWidget* WIG_fingerAdjustEnhanced_LH = 0;
+    /** @brief 右手手指角度调节（增强模式）面板。 */
     QWidget* WIG_fingerAdjustEnhanced_RH = 0;
 
+    /** @brief 左手摇杆姿态面板。 */
     QWidget* WIG_Joystick_LH = 0;
+    /** @brief 右手摇杆姿态面板。 */
     QWidget* WIG_Joystick_RH = 0;
 
-
+    /** @brief 左手摇杆校准面板。 */
     QWidget* WIG_jsCali_LH = 0;
+    /** @brief 右手摇杆校准面板。 */
     QWidget* WIG_jsCali_RH = 0;
 
+    /** @brief 左手手势显示面板。 */
     QWidget* WIG_h2GestureDisplay_LH = 0;
+    /** @brief 右手手势显示面板。 */
     QWidget* WIG_h2GestureDisplay_RH = 0;
 
+	/** @brief SteamVR 监控面板；仅在启用 SteamVR 监控时创建。 */
 	QWidget* WIG_steamVRMonitor = 0;
 
+	/** @brief Unity 宿主的窗口管理器对象。 */
 	QObject* m_h2UnityWindowMgr = 0;
 
+	/** @brief 骨骼树面板。 */
 	QWidget* WIG_h2SkeletonTree = 0;
+	/** @brief CSV 录制面板。 */
 	QWidget* WIG_h2CsvRecord = 0;
 
-
-private:
+    /** @brief 当前演员名，UTF-8 编码。 */
     std::string m_actorName;
-    /*结尾是3E*/
+    /** @brief 当前套装序列号；0 表示未绑定任何设备。 */
     unsigned int m_sn=0;
-    /*连接多套设备 把人按照距离分开*/
-    //GloveSepMgr* m_pActorSepMgr = nullptr;
-    /*全局配置文件*/
+    /** @brief 当前手套采集模式，与 SDK 的 h2GloveMode_TypeDef 取值一致。 */
     h2GloveMode_TypeDef m_MocapGloveMode;
 
+    /** @brief 周期性拉取设备状态的定时器。 */
     QTimer* h2MonitorTimer = nullptr;
+    /** @brief 监控定时器的触发频率，单位 Hz，默认 1。 */
     unsigned int h2MonitorTimerHz = 1;
 
-
+    /** @brief 需要嵌入的外部 Unity 可执行文件名（不含路径与扩展名）。 */
     std::string m_unityExeName = "foheart_hmax_u3d_port";
 
-    //是否显示Index模拟调试按钮
+    /** @brief 是否显示 Index 模拟调试按钮。 */
     bool m_isIndexSimuDebug = false;
 
-    // track current visibility of joystick calibration widgets to avoid redundant layout operations
+    /** @brief 左手摇杆校准面板当前可见性，用于避免重复的布局操作。 */
     bool m_leftJsCaliVisible = true;
+    /** @brief 右手摇杆校准面板当前可见性。 */
     bool m_rightJsCaliVisible = true;
-    // track current visibility of joystick widgets
+    /** @brief 左手摇杆面板当前可见性。 */
     bool m_leftJoystickVisible = true;
+    /** @brief 右手摇杆面板当前可见性。 */
     bool m_rightJoystickVisible = true;
-    //手势调试 弹出窗口
+    /** @brief 手势调试弹出窗口，首次点击时创建并复用。 */
     QWidget* m_gestureContainer = 0;
 
-    //串口
+    /** @brief 串口当前打开状态，0 表示未打开。 */
     unsigned int uartOpenStatus = 0;
 
-    //嵌入
+    /** @brief 承载外部 Unity 进程的对象；为空表示未启动。 */
     QProcess* unityProcess = nullptr;
+    /** @brief 从 Unity 进程截取到的窗口句柄包装。 */
     QWindow* m_unityPortWindow = nullptr;
+    /** @brief 用于把 Unity 窗口嵌入本界面的容器控件。 */
     QWidget* m_unityPortWidget = nullptr;
 
+    /** @brief 是否启用 SteamVR 监控面板。 */
     bool m_isSteamVRMonitorEnabled = false;
     
-    QString m_language = "zh";  // Current language ("en" or "zh")
+    /** @brief 当前界面语言，取值 `"en"` 或 `"zh"`，默认中文。 */
+    QString m_language = "zh";
 private:
+    /** @brief 创建并布局全部子面板、应用 CarbonUI 样式、绑定信号槽。 */
     void initUI();
-    /*
-    将配置文件中的设置读出来显示到界面上
-    */
+    /**
+     * @brief 从配置文件读出设置并回填到界面控件。
+     * @note 只读取、不写回；设备不可用时保持界面原状。
+     */
     void readGloveConfigFileToUI(void);
 
+    /** @brief 枚举系统串口并刷新串口下拉框。 */
     void updateUartPorts(void);
 
-    /*
-    根据手套的在线离线状态 处理界面上的控件是否使能
-    */
+    /**
+     * @brief 按左右手在线状态使能或停用相关面板。
+     * @param[in] isLeftHandOnline  true 表示左手在线。
+     * @param[in] isRightHandOnline true 表示右手在线。
+     * @note 离线一侧的面板会被禁用，避免用户对不存在的设备下发设置。
+     */
     void  updateUIFromGloveOnlineStatus(bool isLeftHandOnline, bool isRightHandOnline);
+    /**
+     * @brief 取本模块（DLL/EXE）所在目录，用于定位 Resources 下的图片。
+     * @return 目录绝对路径，结尾不带分隔符；非 Windows 平台返回空串。
+     */
     std::string GetLocalDllDirectory();
 
-
+    /**
+     * @brief 显示或隐藏左手摇杆校准面板。
+     * @param[in] isVisible true 表示显示。
+     * @note 与 m_leftJsCaliVisible 比较，状态未变化时不做任何布局操作。
+     */
     void setLeftJoystickCaliWidgetVisible(bool isVisible);
+    /** @brief 显示或隐藏右手摇杆校准面板。@param[in] isVisible true 表示显示。 */
     void setRightJoystickCaliWidgetVisible(bool isVisible);
 
-    // control visibility of joystick widgets (add/remove placeholders) to avoid repeated layout changes
+    /** @brief 显示或隐藏左手摇杆姿态面板。@param[in] isVisible true 表示显示。 */
     void setLeftJoystickWidgetVisible(bool isVisible);
+    /** @brief 显示或隐藏右手摇杆姿态面板。@param[in] isVisible true 表示显示。 */
     void setRightJoystickWidgetVisible(bool isVisible);
 
   

@@ -1,4 +1,15 @@
-﻿//#include "stdafx.h"
+﻿/**
+ * @file  h2JoyStickPadWidget.cpp
+ * @brief 摇杆姿态显示控件的实现。
+ * @ingroup h2ui
+ * @version 1.0.0
+ *
+ * @details
+ * 纯声明或转发头，无运行期逻辑。
+ * 函数级说明见对应头文件，此处不再重复 @param / @return。
+ */
+
+//#include "stdafx.h"
 #include "h2JoyStickPadWidget.h"
 #ifdef _WIN32
 #include <windows.h>

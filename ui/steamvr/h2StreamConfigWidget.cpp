@@ -1,4 +1,15 @@
-﻿#include "../../include/h2StreamConfigWidget.h"
+﻿/**
+ * @file  h2StreamConfigWidget.cpp
+ * @brief 串流配置控件的实现。
+ * @ingroup h2ui
+ * @version 1.0.0
+ *
+ * @details
+ * 多语言切换由 LanguageManager 的 languageChanged 信号驱动；控件样式统一由 CarbonUIClass 提供；通过 MotionGloveLLSDK 读写设备配置；依赖 uic 生成的 ui_*.h。
+ * 函数级说明见对应头文件，此处不再重复 @param / @return。
+ */
+
+#include "../../include/h2StreamConfigWidget.h"
 
 #include "h2sdk.h"
 #include "ui_h2StreamConfigWidget.h"

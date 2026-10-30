@@ -1,4 +1,15 @@
-﻿#include "../include/h2SettingsDialog.h"
+﻿/**
+ * @file  h2SettingsDialog.cpp
+ * @brief 设置对话框的实现。
+ * @ingroup h2ui
+ * @version 1.0.0
+ *
+ * @details
+ * 多语言切换由 LanguageManager 的 languageChanged 信号驱动；控件样式统一由 CarbonUIClass 提供；依赖 uic 生成的 ui_*.h。
+ * 函数级说明见对应头文件，此处不再重复 @param / @return。
+ */
+
+#include "../include/h2SettingsDialog.h"
 #include "ui_h2SettingsDialog.h"
 #include "h2NetBroadcastWidget.h"
 #include "../include/h2StreamConfigWidget.h"

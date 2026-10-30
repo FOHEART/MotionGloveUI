@@ -1,0 +1,27 @@
+/**
+ * @file  groups.dox
+ * @brief Doxygen 模块分组定义。
+ *
+ * @details
+ * 分组 ID 必须先在此处定义，源码里的 `&#64;ingroup` 才能解析，
+ * 否则 Doxygen 会报 `Found non-existing group` 并丢弃该文件的归属。
+ * 新增分组时请同时更新本文件与各级源码的 &#64;ingroup。
+ */
+
+/**
+ * @defgroup h2core 纯逻辑核心层
+ * @brief 不含 QWidget 调用、只依赖 Qt5::Core 的可测试逻辑。
+ * @details 由 MotionGloveUICore 静态库提供，库本体与单元测试共用同一份源码。
+ */
+
+/**
+ * @defgroup h2ui 界面控件层
+ * @brief Qt Widgets 控件与对话框，依赖 CarbonUI 样式与 MotionGloveLLSDK。
+ * @details 含 .ui 文件生成的头文件依赖，须在有窗口系统或 QT_QPA_PLATFORM=offscreen 下运行。
+ */
+
+/**
+ * @defgroup h2tests 单元测试
+ * @brief GoogleTest 用例与测试支撑代码。
+ * @details 只覆盖纯逻辑层；需要事件分发的界面用例另建 QtTest 目标。
+ */

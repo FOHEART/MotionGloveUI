@@ -1,0 +1,53 @@
+# Doxyfile —— MotionGloveUI API 文档配置
+# 由 doxygen 1.11.0 生成模板后按《代码注释规范_Doxygen》第 7 章裁剪。
+# 生成：& "D:\autotools\doxygen-1.11.0\doxygen.exe" Doxyfile
+# 产物：docs/html/index.html；告警另存 docs/doxygen_warnings.log（要求 0 行）
+
+# ---- 项目信息 ----
+PROJECT_NAME           = "MotionGloveUI"
+PROJECT_BRIEF          = "MotionGlove 的 Qt5 界面库（libH2UI）"
+PROJECT_NUMBER         = "1.0.0"
+OUTPUT_DIRECTORY       = docs
+OUTPUT_LANGUAGE        = Chinese
+DOXYFILE_ENCODING      = UTF-8
+INPUT_ENCODING         = UTF-8
+
+# ---- 输入 ----
+INPUT                  = include inc src ui tests docs/groups.dox README.md
+FILE_PATTERNS          = *.h *.hpp *.c *.cpp *.cc *.dox
+RECURSIVE              = YES
+EXCLUDE                = third_party out lib .git .vscode
+EXCLUDE_PATTERNS       = */_deps/* *_test.cpp.bak
+USE_MDFILE_AS_MAINPAGE = README.md
+
+# ---- 提取策略 ----
+# EXTRACT_ALL 必须为 NO：设为 YES 会自动关闭 WARN_IF_UNDOCUMENTED，等于放弃注释检查。
+EXTRACT_ALL            = NO
+EXTRACT_STATIC         = YES
+EXTRACT_PRIVATE        = YES
+HIDE_UNDOC_MEMBERS     = NO
+SOURCE_BROWSER         = YES
+
+# ---- HTML 输出 ----
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+HTML_COLORSTYLE        = TOGGLE
+GENERATE_TREEVIEW      = YES
+SEARCHENGINE           = YES
+GENERATE_LATEX         = NO
+USE_MATHJAX            = YES
+
+# ---- 告警（规范落地的关键）----
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = YES
+WARN_NO_PARAMDOC       = YES
+WARN_LOGFILE           = docs/doxygen_warnings.log
+# CI 上可打开，让任何告警直接判定失败：
+# WARN_AS_ERROR        = YES
+
+# ---- 自定义命令 ----
+# @test / @expected / @priority 不是内置命令，用别名映射为小节标题，
+# 保证团队内字段名统一且能在 HTML 里正常渲染。
+ALIASES += test="\par 用例\b"
+ALIASES += expected="\par 预期结果\b"
+ALIASES += priority="\par 优先级\b"

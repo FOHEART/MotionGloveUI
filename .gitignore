@@ -62,6 +62,10 @@ build.ninja
 compile_commands.json
 *.dir
 
+# Doxygen output (regenerate with: doxygen Doxyfile)
+docs/html/
+docs/doxygen_warnings.log
+
 # Archives
 *.zip
 *.tar

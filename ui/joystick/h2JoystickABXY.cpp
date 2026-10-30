@@ -1,4 +1,15 @@
-﻿#include "h2JoystickABXY.h"
+﻿/**
+ * @file  h2JoystickABXY.cpp
+ * @brief 手柄 ABXY 按键状态显示控件的实现。
+ * @ingroup h2ui
+ * @version 1.0.0
+ *
+ * @details
+ * 界面布局由同名 .ui 文件生成。
+ * 函数级说明见对应头文件，此处不再重复 @param / @return。
+ */
+
+#include "h2JoystickABXY.h"
 
 h2JoystickABXY::h2JoystickABXY(QWidget *parent)
 	: QWidget(parent)

@@ -1,7 +1,19 @@
-﻿//#include "stdafx.h"
+﻿/**
+ * @file  h2Widget_OKCali.cpp
+ * @brief 主界面控件中 OK 校准面板逻辑的实现。
+ * @ingroup h2ui
+ * @version 1.0.0
+ *
+ * @details
+ * 通过 MotionGloveLLSDK 读写设备配置。
+ * 函数级说明见对应头文件，此处不再重复 @param / @return。
+ */
+
+//#include "stdafx.h"
 #include "../include/h2Widget.h"
 #include "h2Calibration.h"
 #include "h2sdk.h"
+#include "core/h2RatioConversion.h"
 
 #if H2_OKCALI_FUNC_EN
 
@@ -15,7 +27,7 @@ void h2Widget::on_HS_thumbRatio_LH_Changed(int value)
 		H2Calibration_Config v;
 		H2_SDK_getOKCali(m_sn, &v);
 
-		v.lefthandThumbRatio = val - 100;
+		v.lefthandThumbRatio = static_cast<float>(h2core::sliderValueToRatioOffset(val));
 		H2_SDK_setOKCali(m_sn, v);
 	}
 
@@ -41,7 +53,7 @@ void h2Widget::on_HS_indexRatio_LH_Changed(int value)
 		H2Calibration_Config v;
 		H2_SDK_getOKCali(m_sn, &v);
 
-		v.lefthandIndexRatio = val - 100;
+		v.lefthandIndexRatio = static_cast<float>(h2core::sliderValueToRatioOffset(val));
 		H2_SDK_setOKCali(m_sn, v);
 	}
 	printf("HS_indexRatio_LH %f\r\n", percentVal);
@@ -140,12 +152,14 @@ void h2Widget::on_PB_LH_okCaliReset_clicked()
 	H2_SDK_setOKCali(m_sn, v);
 
 	{
-		int val = (int)std::round(v.lefthandThumbRatio + 100.0);
+		int val = h2core::ratioOffsetToSliderValue(
+			static_cast<int>(std::round(v.lefthandThumbRatio)));
 		ui.HS_thumbRatio_LH->setValue(val);
 		ui.LBL_LH_ThumbRatio->setText(QString::number(val) + QObject::tr("%"));
 	}
 		{
-			int val = (int)std::round(v.lefthandIndexRatio + 100.0);
+			int val = h2core::ratioOffsetToSliderValue(
+				static_cast<int>(std::round(v.lefthandIndexRatio)));
 			ui.HS_indexRatio_LH->setValue(val);
 			ui.LBL_LH_IndexRatio->setText(QString::number(val) + QObject::tr("%"));
 		}
@@ -178,7 +192,8 @@ void h2Widget::on_m_lefthand_ok_caliTimer_timeout()
 
 
 
-	int val = (int)std::round(v.lefthandThumbRatio + 100.0);
+	int val = h2core::ratioOffsetToSliderValue(
+		static_cast<int>(std::round(v.lefthandThumbRatio)));
 	ui.HS_thumbRatio_LH->setValue(val);
 	ui.LBL_LH_ThumbRatio->setText(QString::number(val) + QObject::tr("%"));
 

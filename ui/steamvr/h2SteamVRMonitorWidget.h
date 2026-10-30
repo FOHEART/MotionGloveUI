@@ -1,4 +1,15 @@
-﻿#pragma once
+﻿/**
+ * @file  h2SteamVRMonitorWidget.h
+ * @brief SteamVR 监控面板控件的声明（仅 Windows 提供）。
+ * @ingroup h2ui
+ * @version 1.0.0
+ *
+ * @details
+ * 含 Q_OBJECT，需 moc 生成元对象代码；依赖 uic 生成的 ui_*.h。
+ * 函数级参数与返回值说明见各函数自身的注释块。
+ */
+
+#pragma once
 #include <QtWidgets/QWidget>
 #include <QtCore/QTimer>
 

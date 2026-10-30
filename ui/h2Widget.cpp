@@ -1,4 +1,15 @@
-﻿#pragma execution_character_set("utf-8")
+﻿/**
+ * @file  h2Widget.cpp
+ * @brief 主界面控件 h2Widget 的实现。
+ * @ingroup h2ui
+ * @version 1.0.0
+ *
+ * @details
+ * 控件样式统一由 CarbonUIClass 提供；通过 MotionGloveLLSDK 读写设备配置；依赖 uic 生成的 ui_*.h。
+ * 函数级说明见对应头文件，此处不再重复 @param / @return。
+ */
+
+#pragma execution_character_set("utf-8")
 
 #include <QtGui/QWindow>
 #include <QtCore/QDebug>
@@ -383,9 +394,11 @@ void h2Widget::on_PB_indexSimuDebug_RH_clicked()
 
 }
 
-/*
-清除layout中的所有控件
-*/
+/**
+ * @brief 移除布局中的所有子项并释放对应控件。
+ * @param[in] layout 目标布局，**可为 nullptr**；为空时直接返回。
+ * @note 递归清理嵌套布局；被移除的控件会被 delete，调用方不要继续持有指针。
+ */
 void clearLayout(QLayout* layout)
 {
 	if (!layout) return;

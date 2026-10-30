@@ -1,4 +1,15 @@
-﻿//#include "stdafx.h"
+﻿/**
+ * @file  h2JoystickWidget.cpp
+ * @brief 摇杆综合面板控件的实现。
+ * @ingroup h2ui
+ * @version 1.0.0
+ *
+ * @details
+ * 通过 MotionGloveLLSDK 读写设备配置；依赖 uic 生成的 ui_*.h。
+ * 函数级说明见对应头文件，此处不再重复 @param / @return。
+ */
+
+//#include "stdafx.h"
 #pragma execution_character_set("utf-8")
 
 #include "h2JoystickWidget.h"

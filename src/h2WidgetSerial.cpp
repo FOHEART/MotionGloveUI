@@ -1,4 +1,15 @@
-﻿//#include "stdafx.h"
+﻿/**
+ * @file  h2WidgetSerial.cpp
+ * @brief 主界面控件中串口相关逻辑的实现。
+ * @ingroup h2ui
+ * @version 1.0.0
+ *
+ * @details
+ * 通过 MotionGloveLLSDK 读写设备配置。
+ * 函数级说明见对应头文件，此处不再重复 @param / @return。
+ */
+
+//#include "stdafx.h"
 #include "../include/h2Widget.h"
 
 
