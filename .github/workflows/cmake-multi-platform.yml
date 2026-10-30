@@ -135,10 +135,18 @@ jobs:
         fi
         echo "Found ${cfg}"
         # Three levels up is the Qt install prefix (<prefix>/lib/cmake/Qt5), which is what
-        # CMAKE_PREFIX_PATH expects. Sub-projects resolve Qt through this value whenever
-        # the Install Qt step is skipped by a cache hit.
-        echo "Qt5_DIR=$(dirname "${cfg}")" >> "$GITHUB_ENV"
-        echo "CMAKE_PREFIX_PATH=$(cd "$(dirname "${cfg}")/../../.." && pwd)" >> "$GITHUB_ENV"
+        # CMAKE_PREFIX_PATH expects.
+        qt_cmake_dir=$(dirname "${cfg}")
+        qt_prefix=$(cd "${qt_cmake_dir}/../../.." && pwd)
+        if [ "${RUNNER_OS}" = "Windows" ]; then
+          qt_cmake_dir=$(cygpath -w "${qt_cmake_dir}")
+          qt_prefix=$(cygpath -w "${qt_prefix}")
+        fi
+        echo "Qt5_DIR=${qt_cmake_dir}" >> "$GITHUB_ENV"
+        echo "CMAKE_PREFIX_PATH=${qt_prefix}" >> "$GITHUB_ENV"
+        # A cache hit skips the install step, so its PATH entry has to be recreated here:
+        # Qt DLLs must be findable when ctest discovers and runs the test executables.
+        echo "${qt_prefix}/bin" >> "$GITHUB_PATH"
 
     - name: Configure CMake
       shell: bash
