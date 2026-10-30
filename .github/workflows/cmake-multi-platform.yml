@@ -134,8 +134,11 @@ jobs:
           exit 1
         fi
         echo "Found ${cfg}"
+        # Three levels up is the Qt install prefix (<prefix>/lib/cmake/Qt5), which is what
+        # CMAKE_PREFIX_PATH expects. Sub-projects resolve Qt through this value whenever
+        # the Install Qt step is skipped by a cache hit.
         echo "Qt5_DIR=$(dirname "${cfg}")" >> "$GITHUB_ENV"
-        echo "CMAKE_PREFIX_PATH=$(cd "$(dirname "${cfg}")/../.." && pwd)" >> "$GITHUB_ENV"
+        echo "CMAKE_PREFIX_PATH=$(cd "$(dirname "${cfg}")/../../.." && pwd)" >> "$GITHUB_ENV"
 
     - name: Configure CMake
       shell: bash
