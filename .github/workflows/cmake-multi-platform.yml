@@ -55,6 +55,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        # Do not persist the workflow GITHUB_TOKEN as http.extraheader in .git/config:
+        # libcurl prefers that Authorization header over the URL-embedded XSTYPES_PAT
+        # credentials, so every private-dependency clone would fail with "Repository not
+        # found" (404). The CPM deps authenticate through the url.insteadOf rewrite below.
+        persist-credentials: false
 
     - name: Configure git auth for private dependencies
       shell: bash
@@ -63,6 +69,11 @@ jobs:
           echo "::error::Repository secret XSTYPES_PAT is not set, cannot clone the private dependencies."
           exit 1
         fi
+
+        # Defensive: drop any GITHUB_TOKEN extraheader a previous checkout may have
+        # persisted. It would override the URL-embedded credentials on every git call
+        # made from inside this checkout (including the CPM dependency clones).
+        git config --local --unset-all http.https://github.com/.extraheader 2>/dev/null || true
 
         # A fine-grained token must be presented together with its owner's login;
         # "x-access-token" is only guaranteed for GitHub App installation tokens and is
@@ -159,6 +170,11 @@ jobs:
             git config --show-origin --get-regexp '^(http|credential|url)\.' 2>/dev/null \
               | sed -E 's#(https?://)[^@/]+@#\1***@#g; s#(AUTHORIZATION: *basic +)[^ ]+#\1***#gI' \
               | sed 's/^/         /'
+            if git config --get-all http.https://github.com/.extraheader >/dev/null 2>&1; then
+              echo "       Root cause: http.extraheader is set and overrides the URL credentials."
+              echo "       Use persist-credentials: false on actions/checkout, or unset it:"
+              echo "         git config --local --unset-all http.https://github.com/.extraheader"
+            fi
             failed=1
             continue
           fi
