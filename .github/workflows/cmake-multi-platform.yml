@@ -1,5 +1,4 @@
-﻿# This starter workflow is for a CMake project running on multiple platforms. There is a different starter workflow if you just want a single platform.
-# See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-single-platform.yml
+# CMake build matrix: Windows (MSVC) and Linux (GCC), shared and static.
 name: CMake on multiple platforms
 
 on:
@@ -13,184 +12,76 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
-      # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations. Consider changing this to true when your workflow is stable.
       fail-fast: false
-
-      # Set up a matrix to run the following 3 configurations:
-      # 1. <Windows, Release, latest MSVC compiler toolchain on the default runner image, default generator>
-      # 2. <Linux, Release, latest GCC compiler toolchain on the default runner image, default generator>
-      # 3. <Linux, Release, latest Clang compiler toolchain on the default runner image, default generator>
-      #
-      # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
       matrix:
         os: [windows-latest, ubuntu-22.04]
         build_type: [Release]
         build_shared: [ON, OFF]
-        c_compiler: [gcc,  cl]
         include:
           - os: windows-latest
             c_compiler: cl
             cpp_compiler: cl
+            qt_version: 5.15.2
+            qt_host: windows
+            qt_arch: win64_msvc2019_64
           - os: ubuntu-22.04
             c_compiler: gcc
             cpp_compiler: g++
-        exclude:
-          - os: windows-latest
-            c_compiler: gcc
-          - os: windows-latest
-            c_compiler: clang
-          - os: ubuntu-22.04
-            c_compiler: cl
+            qt_version: 5.14.2
+            qt_host: linux
+            qt_arch: gcc_64
 
-
-    # Provide the private-repo token via repository secret named XSTYPES_PAT.
-    # The token must be able to read every private dependency cloned by CPM:
-    # FOHEART/CarbonUI, FOHEART/MotionGloveLLSDK, FOHEART/GloveSteamDriver.
-    # For a fine-grained token that means: resource owner = FOHEART, all three
-    # repositories selected under "Repository access", Contents: Read, and the
-    # token approved by an org owner (FOHEART -> Settings -> Personal access
-    # tokens -> Pending requests). An unapproved or unlisted token yields HTTP 404.
     env:
+      # Reads the private CPM dependencies below. Needs Contents: Read on each of them;
+      # a fine-grained token must also be approved by the owning organization.
       XSTYPES_PAT: ${{ secrets.XSTYPES_PAT }}
+      PRIVATE_DEPS: FOHEART/CarbonUI FOHEART/MotionGloveLLSDK FOHEART/GloveSteamDriver
+      QT_CACHE_DIR: ${{ github.workspace }}/.qt
+      BUILD_DIR: ${{ github.workspace }}/build
 
     steps:
     - uses: actions/checkout@v4
       with:
-        # Do not persist the workflow GITHUB_TOKEN as http.extraheader in .git/config:
-        # libcurl prefers that Authorization header over the URL-embedded XSTYPES_PAT
-        # credentials, so every private-dependency clone would fail with "Repository not
-        # found" (404). The CPM deps authenticate through the url.insteadOf rewrite below.
+        # Keep the workflow GITHUB_TOKEN out of .git/config. Its http.extraheader takes
+        # precedence over the XSTYPES_PAT credentials set below, which makes every
+        # private dependency clone fail with "Repository not found" (HTTP 404).
         persist-credentials: false
 
     - name: Configure git auth for private dependencies
       shell: bash
       run: |
         if [ -z "${XSTYPES_PAT}" ]; then
-          echo "::error::Repository secret XSTYPES_PAT is not set, cannot clone the private dependencies."
+          echo "::error::Repository secret XSTYPES_PAT is not set."
           exit 1
         fi
-
-        # Defensive: drop any GITHUB_TOKEN extraheader a previous checkout may have
-        # persisted. It would override the URL-embedded credentials on every git call
-        # made from inside this checkout (including the CPM dependency clones).
-        git config --local --unset-all http.https://github.com/.extraheader 2>/dev/null || true
-
-        # A fine-grained token must be presented together with its owner's login;
-        # "x-access-token" is only guaranteed for GitHub App installation tokens and is
-        # silently ignored here, which surfaces as "Repository not found" over HTTPS.
-        resp=$(curl -sS -H "Authorization: Bearer ${XSTYPES_PAT}" \
-          -H "Accept: application/vnd.github+json" "https://api.github.com/user" -w '\n%{http_code}')
-        code=${resp##*$'\n'}
-        body=${resp%$'\n'*}
-        if [ "${code}" != "200" ]; then
-          echo "::error::XSTYPES_PAT is rejected by the GitHub API (GET /user -> HTTP ${code}). The token is invalid, expired or revoked."
+        # A fine-grained token authenticates as its owner's login, not as x-access-token.
+        body=$(curl -sS -H "Authorization: Bearer ${XSTYPES_PAT}" \
+          -H "Accept: application/vnd.github+json" https://api.github.com/user || true)
+        user=$(echo "${body}" | grep -o '"login": *"[^"]*"' | head -n 1 | sed 's/.*: *"//; s/"$//' || true)
+        if [ -z "${user}" ]; then
+          echo "::error::XSTYPES_PAT was rejected by api.github.com (invalid, expired or revoked)."
           exit 1
         fi
-        GIT_TOKEN_USER=$(echo "${body}" | grep -o '"login": *"[^"]*"' | head -n 1 | sed 's/.*: *"//; s/"$//')
-        token_type=$(echo "${body}" | grep -o '"type": *"[^"]*"' | head -n 1 | sed 's/.*: *"//; s/"$//')
-        if [ -z "${GIT_TOKEN_USER}" ]; then
-          echo "::error::Could not determine the login that owns XSTYPES_PAT."
-          exit 1
-        fi
-        echo "XSTYPES_PAT belongs to ${GIT_TOKEN_USER} (${token_type:-unknown})"
-        echo "GIT_TOKEN_USER=${GIT_TOKEN_USER}" >> "$GITHUB_ENV"
-
-        # Rewrite every HTTPS GitHub URL to an authenticated one. This is honoured by
-        # CMake/FetchContent sub-builds on all platforms, whereas ~/.netrc is ignored by
-        # Git Credential Manager on Windows runners.
-        git config --global url."https://${GIT_TOKEN_USER}:${XSTYPES_PAT}@github.com/".insteadOf "https://github.com/"
+        echo "XSTYPES_PAT belongs to ${user}"
+        git config --global url."https://${user}:${XSTYPES_PAT}@github.com/".insteadOf "https://github.com/"
         git config --global credential.interactive never
+        git config --local --unset-all http.https://github.com/.extraheader 2>/dev/null || true
         echo "GIT_TERMINAL_PROMPT=0" >> "$GITHUB_ENV"
 
-    - name: Verify access to private dependency repos
+    - name: Verify access to private dependencies
       shell: bash
       run: |
-        # `git ls-remote` reports "Repository not found" for an invalid token, a token
-        # without access and a missing repository alike. Probe the REST API with the same
-        # token first so a failure names the actual cause (401 / 403 / 404).
-        api="https://api.github.com"
-        repos="FOHEART/CarbonUI FOHEART/MotionGloveLLSDK FOHEART/GloveSteamDriver"
-
-        api_get() { # $1 = REST path; sets REPLY_CODE / REPLY_BODY
-          local resp
-          resp=$(curl -sS -H "Authorization: Bearer ${XSTYPES_PAT}" \
-            -H "Accept: application/vnd.github+json" "${api}$1" -w '\n%{http_code}' || true)
-          REPLY_CODE=${resp##*$'\n'}
-          REPLY_BODY=${resp%$'\n'*}
-        }
-
-        echo "Token authenticates as: ${GIT_TOKEN_USER}"
-
-        failed=0
-        for repo in ${repos}; do
-          api_get "/repos/${repo}"
-          case "${REPLY_CODE}" in
-            200) ;;
-            404)
-              echo "FAIL ${repo} (HTTP 404): the token cannot see this repository."
-              echo "       Fine-grained token: add ${repo} to Repository access and get the token approved"
-              echo "       under FOHEART -> Settings -> Personal access tokens -> Pending requests."
-              echo "       Classic token: needs the 'repo' scope and membership of the FOHEART organization."
-              failed=1
-              continue
-              ;;
-            403)
-              echo "FAIL ${repo} (HTTP 403): access blocked by organization policy."
-              echo "       Approve the fine-grained token for FOHEART, or authorize the classic token for SSO."
-              failed=1
-              continue
-              ;;
-            *)
-              echo "FAIL ${repo} (HTTP ${REPLY_CODE})"
-              echo "${REPLY_BODY}" | head -c 300 | sed 's/^/       /'
-              failed=1
-              continue
-              ;;
-          esac
-
-          # Repo metadata is readable, but clone/ls-remote also need the Contents
-          # permission: fine-grained tokens expose the repo, not its git data, without it.
-          api_get "/repos/${repo}/git/refs/heads"
-          if [ "${REPLY_CODE}" != "200" ]; then
-            echo "FAIL ${repo}: repository is visible, but its git data is not (GET /git/refs/heads -> HTTP ${REPLY_CODE})."
-            echo "       Fine-grained token: Repository permissions -> Contents -> Read-only."
-            echo "${REPLY_BODY}" | head -c 200 | sed 's/^/       /'
-            failed=1
-            continue
-          fi
-
-          if ! err=$(git ls-remote --heads "https://github.com/${repo}.git" 2>&1 >/dev/null); then
-            echo "FAIL ${repo}: git data is readable over the API, but the git transport was refused:"
+        for repo in ${PRIVATE_DEPS}; do
+          if err=$(git ls-remote --heads "https://github.com/${repo}.git" 2>&1 >/dev/null); then
+            echo "OK   ${repo}"
+          else
+            echo "::error::Cannot read ${repo}"
             echo "${err}" | sed 's/^/       /'
-            echo "       Basic-auth probe of the git endpoint (same credential git sends):"
-            curl -s -o /dev/null -D - -u "${GIT_TOKEN_USER}:${XSTYPES_PAT}" \
-              "https://github.com/${repo}.git/info/refs?service=git-upload-pack" \
-              | grep -iE '^(HTTP/|www-authenticate:|x-github-|x-ratelimit-)' | sed 's/^/         /'
-            echo "       git config (credentials redacted):"
-            git config --show-origin --get-regexp '^(http|credential|url)\.' 2>/dev/null \
-              | sed -E 's#(https?://)[^@/]+@#\1***@#g; s#(AUTHORIZATION: *basic +)[^ ]+#\1***#gI' \
-              | sed 's/^/         /'
-            if git config --get-all http.https://github.com/.extraheader >/dev/null 2>&1; then
-              echo "       Root cause: http.extraheader is set and overrides the URL credentials."
-              echo "       Use persist-credentials: false on actions/checkout, or unset it:"
-              echo "         git config --local --unset-all http.https://github.com/.extraheader"
-            fi
-            failed=1
-            continue
+            echo "       Fine-grained token: repository selected, Contents: Read, approved by the org."
+            echo "       Classic token: 'repo' scope and organization membership."
+            exit 1
           fi
-          echo "OK   ${repo}"
         done
-        if [ "${failed}" -ne 0 ]; then
-          echo "::error::XSTYPES_PAT cannot read all private dependencies. Fix the token access described above, then re-run the workflow."
-          exit 1
-        fi
-
-    - name: Set reusable strings
-      # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
-      id: strings
-      shell: bash
-      run: |
-        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
     - name: Setup Python (Windows only)
       if: matrix.os == 'windows-latest'
@@ -198,41 +89,26 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Set Qt cache dir (Windows only)
-      if: matrix.os == 'windows-latest'
-      shell: bash
-      run: |
-        echo "QT_CACHE_DIR=${{ github.workspace }}\\.qt" >> "$GITHUB_ENV"
-        echo "QT_VERSION=5.15.2" >> "$GITHUB_ENV"
-        echo "QT_ARCH=win64_msvc2019_64" >> "$GITHUB_ENV"
-
-    - name: Set Qt cache dir (Ubuntu only)
-      if: matrix.os == 'ubuntu-22.04'
-      shell: bash
-      run: |
-        echo "QT_CACHE_DIR=${{ github.workspace }}/.qt" >> "$GITHUB_ENV"
-        echo "QT_VERSION=5.14.2" >> "$GITHUB_ENV"
-        echo "QT_ARCH=gcc_64" >> "$GITHUB_ENV"
-
-    - name: Restore Qt cache (Windows only)
-      if: matrix.os == 'windows-latest'
+    - name: Restore Qt cache
       id: qt-cache
       uses: actions/cache@v4
       with:
         path: ${{ env.QT_CACHE_DIR }}
-        key: ${{ runner.os }}-qt-5.15.2-win64_msvc2019_64
+        key: ${{ runner.os }}-qt-${{ matrix.qt_version }}-${{ matrix.qt_arch }}
         restore-keys: |
-          ${{ runner.os }}-qt-5.15.2-
+          ${{ runner.os }}-qt-${{ matrix.qt_version }}-
 
-    - name: Restore Qt cache (Ubuntu only)
-      if: matrix.os == 'ubuntu-22.04'
-      id: qt-cache-ubuntu
-      uses: actions/cache@v4
+    - name: Install Qt ${{ matrix.qt_version }}
+      if: steps.qt-cache.outputs.cache-hit != 'true'
+      uses: jurplel/install-qt-action@v4
       with:
-        path: ${{ env.QT_CACHE_DIR }}
-        key: ${{ runner.os }}-qt-5.14.2-gcc_64
-        restore-keys: |
-          ${{ runner.os }}-qt-5.14.2-
+        version: ${{ matrix.qt_version }}
+        host: ${{ matrix.qt_host }}
+        target: desktop
+        arch: ${{ matrix.qt_arch }}
+        dir: ${{ env.QT_CACHE_DIR }}
+        setup-python: false
+        install-deps: true
 
     - name: Install system dependencies (Ubuntu only)
       if: matrix.os == 'ubuntu-22.04'
@@ -240,146 +116,45 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y --no-install-recommends \
-          ninja-build \
-          libgl1-mesa-dev \
-          mesa-common-dev \
-          libxkbcommon-x11-0 \
-          libx11-xcb1 \
-          libxcb-icccm4 \
-          libxcb-image0 \
-          libxcb-keysyms1 \
-          libxcb-randr0 \
-          libxcb-render-util0 \
-          libxcb-shape0 \
-          libxcb-sync1 \
-          libxcb-xfixes0 \
-          libxcb-xinerama0 \
-          libxcb-xkb1 \
-          qtmultimedia5-dev
+          ninja-build libgl1-mesa-dev mesa-common-dev qtmultimedia5-dev \
+          libxkbcommon-x11-0 libx11-xcb1 libxcb-icccm4 libxcb-image0 \
+          libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shape0 \
+          libxcb-sync1 libxcb-xfixes0 libxcb-xinerama0 libxcb-xkb1
 
-    - name: Install Qt 5.15.2 (Windows only)
-      if: matrix.os == 'windows-latest' && steps.qt-cache.outputs.cache-hit != 'true'
-      uses: jurplel/install-qt-action@v4
-      with:
-        version: '5.15.2'
-        arch: 'win64_msvc2019_64'
-        dir: ${{ env.QT_CACHE_DIR }}
-        setup-python: false
-        install-deps: true
-
-    - name: Detect Qt CMake package (Windows only)
-      if: matrix.os == 'windows-latest'
+    - name: Locate Qt5 CMake package
       shell: bash
       run: |
-        echo "Searching for Qt5Config.cmake under: ${QT_CACHE_DIR}"
-        QT5_CONFIG=$(find "${QT_CACHE_DIR}" -type f -name Qt5Config.cmake -print -quit)
-        if [ -z "${QT5_CONFIG}" ]; then
-          echo "Qt5Config.cmake not found in cache dir"
-          find "${QT_CACHE_DIR}" -maxdepth 6 -type d -print || true
+        for root in "${QT_CACHE_DIR}" /usr/lib; do
+          [ -d "${root}" ] || continue
+          cfg=$(find "${root}" -name Qt5Config.cmake -print -quit 2>/dev/null || true)
+          if [ -n "${cfg}" ]; then break; fi
+        done
+        if [ -z "${cfg}" ]; then
+          echo "::error::Qt5Config.cmake not found under ${QT_CACHE_DIR} or /usr/lib"
           exit 1
         fi
-        QT5_CMAKE_DIR=$(dirname "${QT5_CONFIG}")
-        QT_PREFIX=$(cd "${QT5_CMAKE_DIR}/../.." && pwd)
-        echo "Found Qt5Config.cmake: ${QT5_CONFIG}"
-        echo "Qt5_DIR=${QT5_CMAKE_DIR}" >> "$GITHUB_ENV"
-        echo "CMAKE_PREFIX_PATH=${QT_PREFIX}" >> "$GITHUB_ENV"
-        echo "arch=${QT_ARCH}" >> "$GITHUB_ENV"
-
-    - name: Verify Qt CMake package (Windows only)
-      if: matrix.os == 'windows-latest'
-      shell: bash
-      run: |
-        echo "QT_CACHE_DIR=${QT_CACHE_DIR}"
-        echo "Qt5_DIR=${Qt5_DIR}"
-        echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}"
-        test -f "${Qt5_DIR}/Qt5Config.cmake"
-
-    - name: Install Qt 5.14.2 (Ubuntu only)
-      if: matrix.os == 'ubuntu-22.04' && steps.qt-cache-ubuntu.outputs.cache-hit != 'true'
-      uses: jurplel/install-qt-action@v4
-      with:
-        version: '5.14.2'
-        host: 'linux'
-        target: 'desktop'
-        arch: 'gcc_64'
-        dir: ${{ env.QT_CACHE_DIR }}
-        setup-python: false
-        install-deps: true
-
-    - name: Detect Qt CMake package (Ubuntu only)
-      if: matrix.os == 'ubuntu-22.04'
-      shell: bash
-      run: |
-        echo "Env dump (Qt-related):"
-        env | sort | grep -E '^(Qt|QT|CMAKE_PREFIX_PATH)' || true
-
-        SEARCH_ROOTS=()
-        [ -n "${QT_CACHE_DIR}" ] && SEARCH_ROOTS+=("${QT_CACHE_DIR}")
-        [ -n "${Qt5_DIR}" ]      && SEARCH_ROOTS+=("${Qt5_DIR}")
-        [ -n "${Qt5_ROOT}" ]     && SEARCH_ROOTS+=("${Qt5_ROOT}")
-        [ -n "${QT_ROOT_DIR}" ]  && SEARCH_ROOTS+=("${QT_ROOT_DIR}")
-        [ -n "${RUNNER_TEMP}" ]  && SEARCH_ROOTS+=("${RUNNER_TEMP}")
-        SEARCH_ROOTS+=("${HOME}" "${GITHUB_WORKSPACE}" "/opt")
-
-        echo "Search roots: ${SEARCH_ROOTS[*]}"
-        QT5_CONFIG=""
-        for root in "${SEARCH_ROOTS[@]}"; do
-          if [ -d "${root}" ]; then
-            QT5_CONFIG=$(find "${root}" -type f -name Qt5Config.cmake -print -quit 2>/dev/null || true)
-            if [ -n "${QT5_CONFIG}" ]; then
-              break
-            fi
-          fi
-        done
-
-        if [ -n "${QT5_CONFIG}" ]; then
-          QT5_CMAKE_DIR=$(dirname "${QT5_CONFIG}")
-          QT_PREFIX=$(cd "${QT5_CMAKE_DIR}/../.." && pwd)
-          echo "Found Qt5Config.cmake (jurplel): ${QT5_CONFIG}"
-          echo "Qt5_DIR=${QT5_CMAKE_DIR}" >> "$GITHUB_ENV"
-          echo "CMAKE_PREFIX_PATH=${QT_PREFIX}" >> "$GITHUB_ENV"
-        else
-          # Fall back to system Qt5 installed by apt
-          APT_QT5_CONFIG=$(find /usr/lib -type f -name Qt5Config.cmake -print -quit 2>/dev/null || true)
-          if [ -n "${APT_QT5_CONFIG}" ]; then
-            APT_QT5_CMAKE_DIR=$(dirname "${APT_QT5_CONFIG}")
-            APT_QT_PREFIX=$(cd "${APT_QT5_CMAKE_DIR}/../.." && pwd)
-            echo "Falling back to system Qt5Config.cmake: ${APT_QT5_CONFIG}"
-            echo "Qt5_DIR=${APT_QT5_CMAKE_DIR}" >> "$GITHUB_ENV"
-            echo "CMAKE_PREFIX_PATH=${APT_QT_PREFIX}" >> "$GITHUB_ENV"
-          else
-            echo "ERROR: Qt5Config.cmake not found anywhere (jurplel cache and system apt both failed)"
-            exit 1
-          fi
-        fi
-
-    - name: Verify Qt CMake package (Ubuntu only)
-      if: matrix.os == 'ubuntu-22.04'
-      shell: bash
-      run: |
-        echo "Qt5_DIR=${Qt5_DIR}"
-        echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}"
-        test -f "${Qt5_DIR}/Qt5Config.cmake"
+        echo "Found ${cfg}"
+        echo "Qt5_DIR=$(dirname "${cfg}")" >> "$GITHUB_ENV"
+        echo "CMAKE_PREFIX_PATH=$(cd "$(dirname "${cfg}")/../.." && pwd)" >> "$GITHUB_ENV"
 
     - name: Configure CMake
       shell: bash
       run: |
-        EXTRA_ARGS=""
-        if [ "${{ runner.os }}" = "Linux" ] && [ -n "${Qt5_DIR}" ]; then
-          EXTRA_ARGS="-DQt5_DIR=${Qt5_DIR} -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}"
+        # Qt5_DIR from bash is an MSYS path and is unusable by cmake.exe on Windows.
+        if [ "${{ runner.os }}" = "Linux" ]; then
+          QT_ARGS="-DQt5_DIR=${Qt5_DIR} -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}"
         fi
-        cmake -B "${{ steps.strings.outputs.build-output-dir }}" \
+        cmake -B "${BUILD_DIR}" \
           -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
           -DMOTIONGLOVE_UI_BUILD_SHARED=${{ matrix.build_shared }} \
-          ${EXTRA_ARGS} \
+          ${QT_ARGS} \
           -S "${{ github.workspace }}"
 
     - name: Build
-      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+      run: cmake --build "${{ env.BUILD_DIR }}" --config ${{ matrix.build_type }}
 
     - name: Test
-      working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      run: ctest --build-config ${{ matrix.build_type }}
-
+      working-directory: ${{ env.BUILD_DIR }}
+      run: ctest --build-config ${{ matrix.build_type }} --output-on-failure
