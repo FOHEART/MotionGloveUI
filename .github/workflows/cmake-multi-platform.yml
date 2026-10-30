@@ -99,33 +99,48 @@ jobs:
         for repo in ${repos}; do
           api_get "/repos/${repo}"
           case "${REPLY_CODE}" in
-            200)
-              if git ls-remote --heads "https://github.com/${repo}.git" >/dev/null 2>&1; then
-                echo "OK   ${repo}"
-              else
-                echo "FAIL ${repo}: API granted access but 'git ls-remote' failed, so the authenticated url.insteadOf rewrite is not in effect."
-                failed=1
-              fi
-              ;;
+            200) ;;
             404)
               echo "FAIL ${repo} (HTTP 404): the token cannot see this repository."
-              echo "       Fine-grained token: set Repository access to include ${repo} with Contents: Read,"
-              echo "       make sure the token's resource owner is the FOHEART organization, and approve the"
-              echo "       pending request under FOHEART -> Settings -> Personal access tokens -> Pending requests."
+              echo "       Fine-grained token: add ${repo} to Repository access and get the token approved"
+              echo "       under FOHEART -> Settings -> Personal access tokens -> Pending requests."
               echo "       Classic token: needs the 'repo' scope and membership of the FOHEART organization."
               failed=1
+              continue
               ;;
             403)
               echo "FAIL ${repo} (HTTP 403): access blocked by organization policy."
               echo "       Approve the fine-grained token for FOHEART, or authorize the classic token for SSO."
               failed=1
+              continue
               ;;
             *)
               echo "FAIL ${repo} (HTTP ${REPLY_CODE})"
               echo "${REPLY_BODY}" | head -c 300 | sed 's/^/       /'
               failed=1
+              continue
               ;;
           esac
+
+          # Repo metadata is readable, but git clone also needs the Contents permission;
+          # fine-grained tokens only report the repo, not its contents, without it.
+          api_get "/repos/${repo}/contents/"
+          if [ "${REPLY_CODE}" != "200" ]; then
+            echo "FAIL ${repo}: repository is visible, but git access is denied (GET /contents -> HTTP ${REPLY_CODE})."
+            echo "       Fine-grained token: Repository permissions -> Contents -> Read-only."
+            echo "${REPLY_BODY}" | head -c 200 | sed 's/^/       /'
+            failed=1
+            continue
+          fi
+
+          if ! err=$(git ls-remote --heads "https://github.com/${repo}.git" 2>&1 >/dev/null); then
+            echo "FAIL ${repo}: API reports Contents: Read, but the git transport was refused:"
+            echo "${err}" | sed 's/^/       /'
+            echo "       Check that the url.insteadOf rewrite from the previous step is in effect."
+            failed=1
+            continue
+          fi
+          echo "OK   ${repo}"
         done
         if [ "${failed}" -ne 0 ]; then
           echo "::error::XSTYPES_PAT cannot read all private dependencies. Fix the token access described above, then re-run the workflow."
