@@ -43,26 +43,46 @@ jobs:
             c_compiler: cl
 
 
-    # Provide the private-repo token via repository secret named XSTYPES_PAT
+    # Provide the private-repo token via repository secret named XSTYPES_PAT.
+    # The token must be able to read every private dependency cloned by CPM:
+    # FOHEART/CarbonUI, FOHEART/MotionGloveLLSDK, FOHEART/GloveSteamDriver.
     env:
       XSTYPES_PAT: ${{ secrets.XSTYPES_PAT }}
 
     steps:
     - uses: actions/checkout@v4
-  
-    - name: Configure git auth (unix)
-      if: runner.os != 'Windows'
-      run: |
-        printf "machine github.com\nlogin %s\npassword %s\n" "${{ github.actor }}" "${{ secrets.XSTYPES_PAT }}" > "${HOME}/.netrc"
-        chmod 600 "${HOME}/.netrc"
 
-    - name: Configure git auth (windows)
-      if: runner.os == 'Windows'
-      shell: powershell
+    - name: Configure git auth for private dependencies
+      shell: bash
       run: |
-        $netrc = "machine github.com`nlogin $env:GITHUB_ACTOR`npassword $env:XSTYPES_PAT`n"
-        $netrc | Out-File -FilePath "$env:USERPROFILE\.netrc" -Encoding ascii
-        icacls "$env:USERPROFILE\.netrc" /inheritance:r /grant:r "${env:USERNAME}:R"
+        if [ -z "${XSTYPES_PAT}" ]; then
+          echo "::error::Repository secret XSTYPES_PAT is not set, cannot clone the private dependencies."
+          exit 1
+        fi
+        # Rewrite every HTTPS GitHub URL to an authenticated one. This is honoured by
+        # CMake/FetchContent sub-builds on all platforms, whereas ~/.netrc is ignored by
+        # Git Credential Manager on Windows runners.
+        git config --global url."https://x-access-token:${XSTYPES_PAT}@github.com/".insteadOf "https://github.com/"
+        git config --global credential.interactive never
+        echo "GIT_TERMINAL_PROMPT=0" >> "$GITHUB_ENV"
+
+    - name: Verify access to private dependency repos
+      shell: bash
+      run: |
+        failed=0
+        for repo in FOHEART/CarbonUI FOHEART/MotionGloveLLSDK FOHEART/GloveSteamDriver; do
+          if err=$(git ls-remote --heads "https://github.com/${repo}.git" 2>&1 >/dev/null); then
+            echo "OK   ${repo}"
+          else
+            echo "FAIL ${repo}"
+            echo "${err}" | sed 's/^/       /'
+            failed=1
+          fi
+        done
+        if [ "${failed}" -ne 0 ]; then
+          echo "::error::XSTYPES_PAT cannot read all private dependencies. Grant it read access to FOHEART/CarbonUI, FOHEART/MotionGloveLLSDK and FOHEART/GloveSteamDriver (fine-grained PAT: select each repository + Contents: Read; classic PAT: 'repo' scope), then re-run the workflow."
+          exit 1
+        fi
 
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
