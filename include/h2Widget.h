@@ -109,6 +109,23 @@ public:
      */
     int jointOpacityPercent() const;
 
+    /**
+     * @brief 查询「骨骼」页签里「骨骼连线」（八面锥）开关是否勾选。
+     *
+     * @details 复选框缺失（精简构建裁掉该页）时返回 false，即默认不绘制，
+     * 与 GLWidget 的默认状态一致，避免宿主界面在启动时凭空打开一层几何。
+     *
+     * @return true 表示用户要求绘制八面锥骨骼。
+     */
+    bool boneLinesVisible() const;
+
+    /**
+     * @brief 读取「骨骼」页签里骨骼连线透明度滑块的当前值。
+     *
+     * @return 不透明度百分比，单位 ％，取值 [0,100]；滑块缺失时返回 100。
+     */
+    int boneLineOpacityPercent() const;
+
 signals:
     /**
      * @brief 骨骼模型透明度滑块数值变化。
@@ -129,6 +146,25 @@ signals:
      *       （腕关节、指节球、指尖红球），不影响骨骼段。
      */
     void jointOpacityChanged(int percent);
+
+    /**
+     * @brief 「骨骼连线」（八面锥）开关状态变化。
+     *
+     * @param[in] visible true 表示需要在 3D 视图里绘制关节之间的八面锥骨架。
+     *
+     * @note 与骨骼透明度、关节点透明度都是独立通道：八面锥是第三种几何，
+     *       默认关闭，只有用户显式勾选才绘制。
+     */
+    void boneLinesVisibleChanged(bool visible);
+
+    /**
+     * @brief 骨骼连线透明度滑块数值变化。
+     *
+     * @param[in] percent 不透明度百分比，单位 ％，取值 [0,100]。
+     *
+     * @note 只影响八面锥骨架，不影响骨骼模型与关节点球体。
+     */
+    void boneLineOpacityChanged(int percent);
 
 public slots:
 
@@ -174,6 +210,12 @@ private slots:
 
     /** @brief 关节点透明度滑块数值变化：刷新数值文案并转发给主界面。 */
     void onJointOpacitySliderMoved(int percent);
+
+    /** @brief 骨骼连线复选框状态变化：转发给主界面。 */
+    void onBoneLinesToggled(bool checked);
+
+    /** @brief 骨骼连线透明度滑块数值变化：刷新数值文案并转发给主界面。 */
+    void onBoneLineOpacitySliderMoved(int percent);
 
 private:
     /** @brief uic 生成的界面对象，由析构函数负责 delete。 */
@@ -311,6 +353,18 @@ private:
      * @note 滑块或文案控件缺失时直接返回，不抛异常。
      */
     void refreshJointOpacityValueText();
+
+    /** @brief 刷新「骨骼连线」透明度数值文案（"65%" 之类）。 */
+    void refreshBoneLineOpacityValueText();
+
+    /**
+     * @brief 给「骨骼」页签应用深色样式：白色字体 + 与其他页统一的滚动条宽度。
+     *
+     * @details 字体全白是因为该页的树控件本身就是 #3b3b3b 深底，默认灰字对比度不足；
+     *          滚动条宽度统一成 kScrollBarWidth，避免「设置」页的 QScrollArea 与
+     *          「骨骼」页的树各自一套粗细。分组标题（QGroupBox::title）也一并置白。
+     */
+    void applySkeletonTabStyle();
 
   
 };

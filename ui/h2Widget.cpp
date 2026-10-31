@@ -14,6 +14,7 @@
 #include <QtGui/QWindow>
 #include <QtCore/QDebug>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QSlider>
 #include <cmath>
 #include "../include/h2Widget.h"
@@ -49,6 +50,9 @@
 
 namespace
 {
+/// 全页面统一的滚动条宽度，单位逻辑像素；「设置」页的 QScrollArea 与「骨骼」页的树必须同宽。
+constexpr int kScrollBarWidth = 10;
+
 void setStyledRadioText(QRadioButton* radioButton, const QString& text)
 {
 	if (!radioButton)
@@ -479,6 +483,21 @@ void h2Widget::initUI()
 			this, &h2Widget::onJointOpacitySliderMoved);
 		refreshJointOpacityValueText();
 	}
+
+	// 骨骼连线（八面锥）：默认不勾选，勾选后才在 3D 视图里绘制
+	if (ui->CB_boneLines)
+	{
+		QObject::connect(ui->CB_boneLines, &QCheckBox::toggled,
+			this, &h2Widget::onBoneLinesToggled);
+	}
+	if (ui->SL_boneLineOpacity)
+	{
+		QObject::connect(ui->SL_boneLineOpacity, &QSlider::valueChanged,
+			this, &h2Widget::onBoneLineOpacitySliderMoved);
+		refreshBoneLineOpacityValueText();
+	}
+
+	applySkeletonTabStyle();
 
 	WIG_h2CsvRecord = new h2CsvRecord(this);
 	WIG_h2CsvRecord->setObjectName(QStringLiteral("WIG_h2CsvRecord"));
@@ -1116,6 +1135,13 @@ void h2Widget::retranslateUI()
 
 		if (ui->LBL_skeletonOpacityTitle) ui->LBL_skeletonOpacityTitle->setText("Bone Opacity");
 		if (ui->LBL_jointOpacityTitle) ui->LBL_jointOpacityTitle->setText("Joint Opacity");
+
+		if (ui->GB_joints) ui->GB_joints->setTitle("Joints");
+		if (ui->GB_bones) ui->GB_bones->setTitle("Bones");
+		if (ui->GB_boneLinks) ui->GB_boneLinks->setTitle("Bone Links");
+		if (ui->CB_boneLines) ui->CB_boneLines->setText("Draw bone links (octahedral)");
+		if (ui->LBL_boneLineOpacityTitle)
+			ui->LBL_boneLineOpacityTitle->setText("Link Opacity");
 	} else {
 		if (ui->GBX_FR) ui->GBX_FR->setTitle("帧率");
 		ui->TW_main->setTabText(0, "设置");
@@ -1129,10 +1155,18 @@ void h2Widget::retranslateUI()
 
 		if (ui->LBL_skeletonOpacityTitle) ui->LBL_skeletonOpacityTitle->setText("骨骼透明度");
 		if (ui->LBL_jointOpacityTitle) ui->LBL_jointOpacityTitle->setText("关节点透明度");
+
+		if (ui->GB_joints) ui->GB_joints->setTitle("关节点");
+		if (ui->GB_bones) ui->GB_bones->setTitle("骨骼");
+		if (ui->GB_boneLinks) ui->GB_boneLinks->setTitle("骨骼连线");
+		if (ui->CB_boneLines) ui->CB_boneLines->setText("绘制八面锥骨骼");
+		if (ui->LBL_boneLineOpacityTitle)
+			ui->LBL_boneLineOpacityTitle->setText("连线透明度");
 	}
 
 	refreshSkeletonOpacityValueText();
 	refreshJointOpacityValueText();
+	refreshBoneLineOpacityValueText();
 }
 
 void h2Widget::refreshSkeletonOpacityValueText()
@@ -1181,4 +1215,76 @@ void h2Widget::onJointOpacitySliderMoved(int percent)
 {
 	refreshJointOpacityValueText();
 	emit jointOpacityChanged(percent);
+}
+
+bool h2Widget::boneLinesVisible() const
+{
+	// 复选框缺失时回退 false：默认不绘制八面锥，与 GLWidget 的默认状态一致
+	if (!ui || !ui->CB_boneLines)
+	{
+		return false;
+	}
+
+	return ui->CB_boneLines->isChecked();
+}
+
+int h2Widget::boneLineOpacityPercent() const
+{
+	if (!ui || !ui->SL_boneLineOpacity)
+	{
+		return 100;
+	}
+
+	return ui->SL_boneLineOpacity->value();
+}
+
+void h2Widget::refreshBoneLineOpacityValueText()
+{
+	if (!ui || !ui->SL_boneLineOpacity || !ui->LBL_boneLineOpacityValue) return;
+
+	ui->LBL_boneLineOpacityValue->setText(
+		QString::number(ui->SL_boneLineOpacity->value()) + "%");
+}
+
+void h2Widget::onBoneLinesToggled(bool checked)
+{
+	emit boneLinesVisibleChanged(checked);
+}
+
+void h2Widget::onBoneLineOpacitySliderMoved(int percent)
+{
+	refreshBoneLineOpacityValueText();
+	emit boneLineOpacityChanged(percent);
+}
+
+void h2Widget::applySkeletonTabStyle()
+{
+	// 该页背景是 #3b3b3b，默认灰字对比度不足，因此整页文字统一置白；
+	// 滚动条宽度取统一的 kScrollBarWidth，与「设置」页的 QScrollArea 保持同粗。
+	const QString style = QStringLiteral(
+		"QWidget#tab_skeleton { background-color: #3b3b3b; }"
+		"QWidget#tab_skeleton QLabel, QWidget#tab_skeleton QCheckBox,"
+		" QWidget#tab_skeleton QGroupBox { color: #ffffff; }"
+		"QWidget#tab_skeleton QGroupBox { border: 1px solid #4a4a4a; border-radius: 4px;"
+		" margin-top: 9px; padding-top: 3px; }"
+		"QWidget#tab_skeleton QGroupBox::title { subcontrol-origin: margin;"
+		" subcontrol-position: top left; left: 8px; padding: 0 3px; color: #ffffff; }"
+		"QWidget#tab_skeleton QSlider::groove:horizontal { height: 4px; background: #5a5a5a;"
+		" border-radius: 2px; }"
+		"QWidget#tab_skeleton QSlider::handle:horizontal { width: 12px; margin: -5px 0;"
+		" border-radius: 6px; background: #c8c8c8; }"
+		"QScrollBar:vertical { width: %1px; background: #2b2b2b; margin: 0; }"
+		"QScrollBar::handle:vertical { background: #6a6a6a; min-height: 24px;"
+		" border-radius: %2px; }"
+		"QScrollBar:horizontal { height: %1px; background: #2b2b2b; margin: 0; }"
+		"QScrollBar::handle:horizontal { background: #6a6a6a; min-width: 24px;"
+		" border-radius: %2px; }"
+		"QScrollBar::add-line, QScrollBar::sub-line { width: 0; height: 0; }"
+		"QScrollBar::add-page, QScrollBar::sub-page { background: transparent; }")
+		.arg(kScrollBarWidth)
+		.arg(kScrollBarWidth / 2);
+
+	// 作用域是整个 h2Widget：QScrollBar 是「设置」页 QScrollArea 与「骨骼」页树的公共子控件，
+	// 只有统一在这里设置才能保证各页滚动条同宽。
+	setStyleSheet(style);
 }
