@@ -14,11 +14,13 @@
  * 用法：
  *  - `h2ui_ui_tests`            跑全部测试类；
  *  - `h2ui_ui_tests widget`     只跑 h2GloveDeviceTreeWidgetUiTest；
- *  - `h2ui_ui_tests container`  只跑 h2GloveDeviceTreeContainerWidgetUiTest。
+ *  - `h2ui_ui_tests container`  只跑 h2GloveDeviceTreeContainerWidgetUiTest；
+ *  - `h2ui_ui_tests opacity`    只跑 h2WidgetSkeletonOpacityUiTest。
  */
 
 #include "h2GloveDeviceTreeContainerWidget_ui_test.h"
 #include "h2GloveDeviceTreeWidget_ui_test.h"
+#include "h2Widget_skeletonOpacity_ui_test.h"
 
 #include <QApplication>
 #include <QDir>
@@ -112,6 +114,12 @@ int main(int argc, char** argv)
     {
         h2GloveDeviceTreeContainerWidgetUiTest testCase;
         failed += runClass(&testCase, QStringLiteral("h2GloveDeviceTreeContainerWidgetUiTest"), filteredArgs);
+    }
+    if (selectedClass.isEmpty() || selectedClass == QStringLiteral("opacity"))
+    {
+        h2WidgetSkeletonOpacityUiTest testCase;
+        failed += runClass(&testCase, QStringLiteral("h2WidgetSkeletonOpacityUiTest"),
+                          filteredArgs);
     }
 
     return failed == 0 ? 0 : 1;

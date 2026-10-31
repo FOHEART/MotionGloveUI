@@ -8,6 +8,7 @@
 qt5_wrap_cpp(UI_TEST_MOC_SOURCES
   h2GloveDeviceTreeWidget_ui_test.h
   h2GloveDeviceTreeContainerWidget_ui_test.h
+  h2Widget_skeletonOpacity_ui_test.h
 )
 
 add_executable(h2ui_ui_tests
@@ -15,6 +16,7 @@ add_executable(h2ui_ui_tests
   ui_test_support.cpp
   h2GloveDeviceTreeWidget_ui_test.cpp
   h2GloveDeviceTreeContainerWidget_ui_test.cpp
+  h2Widget_skeletonOpacity_ui_test.cpp
   ${UI_TEST_MOC_SOURCES}
 )
 
@@ -24,8 +26,10 @@ target_include_directories(h2ui_ui_tests PRIVATE
 )
 
 # 被测控件由 MotionGloveUI 导出；QtTest 提供 QTest 断言与事件注入
+# h2Widget.h 公开包含 h2sdk.h，因此编译期还需要 MotionGloveLLSDK 的头文件目录
 target_link_libraries(h2ui_ui_tests PRIVATE
   MotionGloveUI
+  MotionGloveLLSDK
   Qt5::Widgets
   Qt5::Test
 )
@@ -69,17 +73,29 @@ foreach(_plugin IN LISTS H2_OFFSCREEN_PLUGINS)
 endforeach()
 
 # 2) 被测库与其依赖的 SDK / 驱动 DLL（target 文件路径由构建系统给出）
-add_custom_command(TARGET h2ui_ui_tests POST_BUILD
+#
+# 用独立的 always-run 目标而不是 h2ui_ui_tests 的 POST_BUILD：
+# 只有 MotionGloveUI.dll 变化、测试源码没变时，测试 exe 不会重新链接，
+# POST_BUILD 就不会执行，测试会静默加载上一次的旧 DLL（看着全绿，其实测的是旧代码）。
+#
+# 目标目录写成变量而不是 $<TARGET_FILE_DIR:h2ui_ui_tests>：后者会让本目标反向依赖
+# 测试 exe，与 add_dependencies 构成循环。
+set(H2_UI_TEST_BIN_DIR "${CMAKE_CURRENT_BINARY_DIR}/bin")
+
+add_custom_target(h2ui_ui_test_runtime ALL
+  COMMAND ${CMAKE_COMMAND} -E make_directory "${H2_UI_TEST_BIN_DIR}"
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
-          "$<TARGET_FILE:MotionGloveUI>" "$<TARGET_FILE_DIR:h2ui_ui_tests>"
+          "$<TARGET_FILE:MotionGloveUI>" "${H2_UI_TEST_BIN_DIR}"
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
-          "$<TARGET_FILE:MotionGloveLLSDK>" "$<TARGET_FILE_DIR:h2ui_ui_tests>"
-  COMMENT "Copying MotionGloveUI / MotionGloveLLSDK next to h2ui_ui_tests")
+          "$<TARGET_FILE:MotionGloveLLSDK>" "${H2_UI_TEST_BIN_DIR}"
+  COMMENT "Copying MotionGloveUI / MotionGloveLLSDK next to h2ui_ui_tests"
+  VERBATIM)
+add_dependencies(h2ui_ui_tests h2ui_ui_test_runtime)
 
 if(WIN32 AND TARGET GloveSteamDriver)
-  add_custom_command(TARGET h2ui_ui_tests POST_BUILD
+  add_custom_command(TARGET h2ui_ui_test_runtime POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "$<TARGET_FILE:GloveSteamDriver>" "$<TARGET_FILE_DIR:h2ui_ui_tests>"
+            "$<TARGET_FILE:GloveSteamDriver>" "${H2_UI_TEST_BIN_DIR}"
     COMMENT "Copying GloveSteamDriver next to h2ui_ui_tests")
 endif()
 
@@ -90,10 +106,12 @@ set(H2_UI_TEST_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/ui-test-output")
 
 add_test(NAME Ui.DeviceTreeWidget COMMAND h2ui_ui_tests widget)
 add_test(NAME Ui.DeviceTreeContainer COMMAND h2ui_ui_tests container)
+add_test(NAME Ui.SkeletonOpacity COMMAND h2ui_ui_tests opacity)
 
 set_tests_properties(
   Ui.DeviceTreeWidget
   Ui.DeviceTreeContainer
+  Ui.SkeletonOpacity
   PROPERTIES
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_FONTDIR=C:/Windows/Fonts;UI_TEST_OUTPUT=${H2_UI_TEST_OUTPUT}"
     RESOURCE_LOCK gui_desktop

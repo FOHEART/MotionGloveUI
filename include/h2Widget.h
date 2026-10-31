@@ -87,6 +87,28 @@ public:
      */
     void setTabPageLanguage(const QString& lang);
 
+    /**
+     * @brief 读取「骨骼」页签透明度滑块的当前值。
+     *
+     * @details
+     * 供宿主界面在创建 3D 视图后同步初始状态使用：滑块默认值来自 .ui，
+     * 若宿主另有默认值，二者必须对齐，否则用户要拖动一次滑块才看得到预期画面。
+     * 滑块缺失（例如精简构建裁掉了「骨骼」页签）时返回 100（完全不透明）。
+     *
+     * @return 透明度百分比，单位 ％，取值 [0,100]；100 表示完全不透明。
+     */
+    int skeletonOpacityPercent() const;
+
+signals:
+    /**
+     * @brief 骨骼模型透明度滑块数值变化。
+     *
+     * @param[in] percent 透明度百分比，单位 ％，取值 [0,100]；0 完全透明、100 完全不透明。
+     *
+     * @note 由「骨骼」页签的滑块发出，主界面据此刷新 3D 视图的骨骼透明度。
+     */
+    void skeletonOpacityChanged(int percent);
+
 public slots:
 
     /**
@@ -125,6 +147,9 @@ private slots:
     
     /** @brief 按 m_language 刷新主界面所有静态文案。 */
     void retranslateUI();
+
+    /** @brief 骨骼透明度滑块数值变化：刷新数值文案并转发给主界面。 */
+    void onSkeletonOpacitySliderMoved(int percent);
 
 private:
     /** @brief uic 生成的界面对象，由析构函数负责 delete。 */
@@ -250,6 +275,12 @@ private:
     void setLeftJoystickWidgetVisible(bool isVisible);
     /** @brief 显示或隐藏右手摇杆姿态面板。@param[in] isVisible true 表示显示。 */
     void setRightJoystickWidgetVisible(bool isVisible);
+
+    /**
+     * @brief 用滑块当前值刷新骨骼透明度的数值文案。
+     * @note 滑块或文案控件缺失时直接返回，不抛异常。
+     */
+    void refreshSkeletonOpacityValueText();
 
   
 };

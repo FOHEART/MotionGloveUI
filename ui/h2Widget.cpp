@@ -14,6 +14,7 @@
 #include <QtGui/QWindow>
 #include <QtCore/QDebug>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QSlider>
 #include <cmath>
 #include "../include/h2Widget.h"
 #include "ui_h2Widget.h"
@@ -462,6 +463,14 @@ void h2Widget::initUI()
 	WIG_h2SkeletonTree = new h2SkeletonWidget(this);
 	WIG_h2SkeletonTree->setObjectName(QStringLiteral("WIG_h2SkeletonTree"));
 	ui->VL_skeleton->addWidget(WIG_h2SkeletonTree);
+
+	// 骨骼透明度滑块：默认 100%，拖动时通知主界面刷新 3D 视图
+	if (ui->SL_skeletonOpacity)
+	{
+		QObject::connect(ui->SL_skeletonOpacity, &QSlider::valueChanged,
+			this, &h2Widget::onSkeletonOpacitySliderMoved);
+		refreshSkeletonOpacityValueText();
+	}
 
 	WIG_h2CsvRecord = new h2CsvRecord(this);
 	WIG_h2CsvRecord->setObjectName(QStringLiteral("WIG_h2CsvRecord"));
@@ -1096,6 +1105,8 @@ void h2Widget::retranslateUI()
 		setStyledRadioText(ui->RB_freeMode, "Free Mode");
 		setStyledRadioText(ui->RB_lockMode, "Finger Lock");
 		setStyledRadioText(ui->RB_mixMode, "Mix Mode");
+
+		if (ui->LBL_skeletonOpacityTitle) ui->LBL_skeletonOpacityTitle->setText("Opacity");
 	} else {
 		if (ui->GBX_FR) ui->GBX_FR->setTitle("帧率");
 		ui->TW_main->setTabText(0, "设置");
@@ -1106,5 +1117,33 @@ void h2Widget::retranslateUI()
 		setStyledRadioText(ui->RB_freeMode, "自由模式");
 		setStyledRadioText(ui->RB_lockMode, "分指锁定");
 		setStyledRadioText(ui->RB_mixMode, "混合模式");
+
+		if (ui->LBL_skeletonOpacityTitle) ui->LBL_skeletonOpacityTitle->setText("透明度");
 	}
+
+	refreshSkeletonOpacityValueText();
+}
+
+void h2Widget::refreshSkeletonOpacityValueText()
+{
+	if (!ui || !ui->SL_skeletonOpacity || !ui->LBL_skeletonOpacityValue) return;
+
+	ui->LBL_skeletonOpacityValue->setText(QString::number(ui->SL_skeletonOpacity->value()) + "%");
+}
+
+int h2Widget::skeletonOpacityPercent() const
+{
+	// 滑块缺失时回退 100（完全不透明），与改动前的渲染结果保持一致
+	if (!ui || !ui->SL_skeletonOpacity)
+	{
+		return 100;
+	}
+
+	return ui->SL_skeletonOpacity->value();
+}
+
+void h2Widget::onSkeletonOpacitySliderMoved(int percent)
+{
+	refreshSkeletonOpacityValueText();
+	emit skeletonOpacityChanged(percent);
 }
