@@ -99,6 +99,16 @@ public:
      */
     int skeletonOpacityPercent() const;
 
+    /**
+     * @brief 读取「骨骼」页签关节点滑块的当前值。
+     *
+     * @details 关节点（腕关节、各指节球、指尖红球）与骨骼段是两条独立的透明度通道，
+     * 本接口只返回关节点通道的值。滑块缺失时返回 100（完全不透明）。
+     *
+     * @return 关节点透明度百分比，单位 ％，取值 [0,100]；100 表示完全不透明。
+     */
+    int jointOpacityPercent() const;
+
 signals:
     /**
      * @brief 骨骼模型透明度滑块数值变化。
@@ -108,6 +118,17 @@ signals:
      * @note 由「骨骼」页签的滑块发出，主界面据此刷新 3D 视图的骨骼透明度。
      */
     void skeletonOpacityChanged(int percent);
+
+    /**
+     * @brief 关节点透明度滑块数值变化。
+     *
+     * @param[in] percent 关节点透明度百分比，单位 ％，取值 [0,100]；
+     *                    0 完全透明、100 完全不透明。
+     *
+     * @note 与 skeletonOpacityChanged 是两条独立通道：本信号只影响关节点
+     *       （腕关节、指节球、指尖红球），不影响骨骼段。
+     */
+    void jointOpacityChanged(int percent);
 
 public slots:
 
@@ -150,6 +171,9 @@ private slots:
 
     /** @brief 骨骼透明度滑块数值变化：刷新数值文案并转发给主界面。 */
     void onSkeletonOpacitySliderMoved(int percent);
+
+    /** @brief 关节点透明度滑块数值变化：刷新数值文案并转发给主界面。 */
+    void onJointOpacitySliderMoved(int percent);
 
 private:
     /** @brief uic 生成的界面对象，由析构函数负责 delete。 */
@@ -281,6 +305,12 @@ private:
      * @note 滑块或文案控件缺失时直接返回，不抛异常。
      */
     void refreshSkeletonOpacityValueText();
+
+    /**
+     * @brief 用滑块当前值刷新关节点透明度的数值文案。
+     * @note 滑块或文案控件缺失时直接返回，不抛异常。
+     */
+    void refreshJointOpacityValueText();
 
   
 };

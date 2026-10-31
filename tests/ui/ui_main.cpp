@@ -15,11 +15,13 @@
  *  - `h2ui_ui_tests`            跑全部测试类；
  *  - `h2ui_ui_tests widget`     只跑 h2GloveDeviceTreeWidgetUiTest；
  *  - `h2ui_ui_tests container`  只跑 h2GloveDeviceTreeContainerWidgetUiTest；
- *  - `h2ui_ui_tests opacity`    只跑 h2WidgetSkeletonOpacityUiTest。
+ *  - `h2ui_ui_tests opacity`    只跑 h2WidgetSkeletonOpacityUiTest；
+ *  - `h2ui_ui_tests joint`      只跑 h2WidgetJointOpacityUiTest。
  */
 
 #include "h2GloveDeviceTreeContainerWidget_ui_test.h"
 #include "h2GloveDeviceTreeWidget_ui_test.h"
+#include "h2Widget_jointOpacity_ui_test.h"
 #include "h2Widget_skeletonOpacity_ui_test.h"
 
 #include <QApplication>
@@ -119,6 +121,12 @@ int main(int argc, char** argv)
     {
         h2WidgetSkeletonOpacityUiTest testCase;
         failed += runClass(&testCase, QStringLiteral("h2WidgetSkeletonOpacityUiTest"),
+                          filteredArgs);
+    }
+    if (selectedClass.isEmpty() || selectedClass == QStringLiteral("joint"))
+    {
+        h2WidgetJointOpacityUiTest testCase;
+        failed += runClass(&testCase, QStringLiteral("h2WidgetJointOpacityUiTest"),
                           filteredArgs);
     }
 

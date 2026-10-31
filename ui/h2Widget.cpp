@@ -472,6 +472,14 @@ void h2Widget::initUI()
 		refreshSkeletonOpacityValueText();
 	}
 
+	// 关节点透明度滑块：与骨骼段是两条独立通道，默认 100%
+	if (ui->SL_jointOpacity)
+	{
+		QObject::connect(ui->SL_jointOpacity, &QSlider::valueChanged,
+			this, &h2Widget::onJointOpacitySliderMoved);
+		refreshJointOpacityValueText();
+	}
+
 	WIG_h2CsvRecord = new h2CsvRecord(this);
 	WIG_h2CsvRecord->setObjectName(QStringLiteral("WIG_h2CsvRecord"));
 	ui->VL_csv->addWidget(WIG_h2CsvRecord);
@@ -1106,7 +1114,8 @@ void h2Widget::retranslateUI()
 		setStyledRadioText(ui->RB_lockMode, "Finger Lock");
 		setStyledRadioText(ui->RB_mixMode, "Mix Mode");
 
-		if (ui->LBL_skeletonOpacityTitle) ui->LBL_skeletonOpacityTitle->setText("Opacity");
+		if (ui->LBL_skeletonOpacityTitle) ui->LBL_skeletonOpacityTitle->setText("Bone Opacity");
+		if (ui->LBL_jointOpacityTitle) ui->LBL_jointOpacityTitle->setText("Joint Opacity");
 	} else {
 		if (ui->GBX_FR) ui->GBX_FR->setTitle("帧率");
 		ui->TW_main->setTabText(0, "设置");
@@ -1118,10 +1127,12 @@ void h2Widget::retranslateUI()
 		setStyledRadioText(ui->RB_lockMode, "分指锁定");
 		setStyledRadioText(ui->RB_mixMode, "混合模式");
 
-		if (ui->LBL_skeletonOpacityTitle) ui->LBL_skeletonOpacityTitle->setText("透明度");
+		if (ui->LBL_skeletonOpacityTitle) ui->LBL_skeletonOpacityTitle->setText("骨骼透明度");
+		if (ui->LBL_jointOpacityTitle) ui->LBL_jointOpacityTitle->setText("关节点透明度");
 	}
 
 	refreshSkeletonOpacityValueText();
+	refreshJointOpacityValueText();
 }
 
 void h2Widget::refreshSkeletonOpacityValueText()
@@ -1142,8 +1153,32 @@ int h2Widget::skeletonOpacityPercent() const
 	return ui->SL_skeletonOpacity->value();
 }
 
+int h2Widget::jointOpacityPercent() const
+{
+	// 滑块缺失时回退 100（完全不透明），与改动前的渲染结果保持一致
+	if (!ui || !ui->SL_jointOpacity)
+	{
+		return 100;
+	}
+
+	return ui->SL_jointOpacity->value();
+}
+
+void h2Widget::refreshJointOpacityValueText()
+{
+	if (!ui || !ui->SL_jointOpacity || !ui->LBL_jointOpacityValue) return;
+
+	ui->LBL_jointOpacityValue->setText(QString::number(ui->SL_jointOpacity->value()) + "%");
+}
+
 void h2Widget::onSkeletonOpacitySliderMoved(int percent)
 {
 	refreshSkeletonOpacityValueText();
 	emit skeletonOpacityChanged(percent);
+}
+
+void h2Widget::onJointOpacitySliderMoved(int percent)
+{
+	refreshJointOpacityValueText();
+	emit jointOpacityChanged(percent);
 }
