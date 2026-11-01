@@ -190,10 +190,6 @@
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="LBL_skeleton_hint">
-        </widget>
-       </item>
-       <item>
         <widget class="QGroupBox" name="GBX_loc">
          <property name="title">
           <string>位移 / Displacement</string>
@@ -235,6 +231,70 @@
           </item>
           <item>
            <spacer name="horizontalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="GBX_skeletonFormat">
+         <property name="title">
+          <string>骨骼段数 / Skeleton Segments</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_12">
+          <property name="spacing">
+           <number>1</number>
+          </property>
+          <property name="topMargin">
+           <number>6</number>
+          </property>
+          <property name="bottomMargin">
+           <number>6</number>
+          </property>
+          <item>
+           <widget class="QRadioButton" name="RB_skeleton32">
+            <property name="text">
+             <string>32段骨骼</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="RB_skeleton42">
+            <property name="text">
+             <string>42段骨骼</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="RB_skeletonOpenXR">
+            <property name="text">
+             <string>OpenXR骨骼</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_skeletonFormat">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>

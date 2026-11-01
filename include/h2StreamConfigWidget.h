@@ -23,6 +23,9 @@ namespace Ui { class h2StreamConfigWidget; }
  * @details 界面由 uic 生成的 `ui_h2StreamConfigWidget.h` 提供；
  *          配置的读取与写回都通过 MotionGloveLLSDK 完成，
  *          控件本身不保存配置副本。
+ *          「骨骼段数」分组把 `h2GloveStreamConfig::skeletonFormat`
+ *          暴露成 32 段 / 42 段 / OpenXR 三选一，构造时按 SDK 当前值回填，
+ *          `writeH2StreamConfig()` 时写回。
  */
 class LIBH2UI_API h2StreamConfigWidget : public QWidget
 {

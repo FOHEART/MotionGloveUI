@@ -17,11 +17,13 @@
  *  - `h2ui_ui_tests container`  只跑 h2GloveDeviceTreeContainerWidgetUiTest；
  *  - `h2ui_ui_tests opacity`    只跑 h2WidgetSkeletonOpacityUiTest；
  *  - `h2ui_ui_tests joint`      只跑 h2WidgetJointOpacityUiTest；
- *  - `h2ui_ui_tests mocapmode`  只跑 h2WidgetMocapModePanelUiTest。
+ *  - `h2ui_ui_tests mocapmode`  只跑 h2WidgetMocapModePanelUiTest；
+ *  - `h2ui_ui_tests streamformat` 只跑 h2StreamConfigWidgetUiTest。
  */
 
 #include "h2GloveDeviceTreeContainerWidget_ui_test.h"
 #include "h2GloveDeviceTreeWidget_ui_test.h"
+#include "h2StreamConfigWidget_ui_test.h"
 #include "h2Widget_jointOpacity_ui_test.h"
 #include "h2Widget_mocapModePanel_ui_test.h"
 #include "h2Widget_skeletonOpacity_ui_test.h"
@@ -135,6 +137,12 @@ int main(int argc, char** argv)
     {
         h2WidgetJointOpacityUiTest testCase;
         failed += runClass(&testCase, QStringLiteral("h2WidgetJointOpacityUiTest"),
+                          filteredArgs);
+    }
+    if (selectedClass.isEmpty() || selectedClass == QStringLiteral("streamformat"))
+    {
+        h2StreamConfigWidgetUiTest testCase;
+        failed += runClass(&testCase, QStringLiteral("h2StreamConfigWidgetUiTest"),
                           filteredArgs);
     }
 

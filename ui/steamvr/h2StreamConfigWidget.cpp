@@ -32,6 +32,7 @@ h2StreamConfigWidget::h2StreamConfigWidget(QWidget* parent)
 	QGroupBoxCollapser::installIntoGroupBox(ui->GBX_stream, 0, true);
 	QGroupBoxCollapser::installIntoGroupBox(ui->GBX_frame, 0, true);
 	QGroupBoxCollapser::installIntoGroupBox(ui->GBX_loc, 0, true);
+	QGroupBoxCollapser::installIntoGroupBox(ui->GBX_skeletonFormat, 0, true);
 	QGroupBoxCollapser::installIntoGroupBox(ui->GBX_rot, 0, true);
 	QGroupBoxCollapser::installIntoGroupBox(ui->GBX_rotAxis, 0, true);
 	QGroupBoxCollapser::installIntoGroupBox(ui->GBX_sensorRot, 0, true);
@@ -48,6 +49,10 @@ h2StreamConfigWidget::h2StreamConfigWidget(QWidget* parent)
 	CarbonUIClass::applyRadioStyle(ui->RB_binary, CarbonUIClass::Radio_LeftRound, 64);
 	//CarbonUIClass::applyRadioStyle(ui->RB_lockMode, CarbonUIClass::Radio_Rectangle, 64);
 	CarbonUIClass::applyRadioStyle(ui->RB_string, CarbonUIClass::Radio_RightRound, 64);
+
+	CarbonUIClass::applyRadioStyle(ui->RB_skeleton32, CarbonUIClass::Radio_LeftRound, 96);
+	CarbonUIClass::applyRadioStyle(ui->RB_skeleton42, CarbonUIClass::Radio_Rectangle, 96);
+	CarbonUIClass::applyRadioStyle(ui->RB_skeletonOpenXR, CarbonUIClass::Radio_RightRound, 96);
 
 	CarbonUIClass::applyRadioStyle(ui->RB_skeletonQuat, CarbonUIClass::Radio_LeftRound, 64);
 	CarbonUIClass::applyRadioStyle(ui->RB_skeletonEuler, CarbonUIClass::Radio_RightRound, 64);
@@ -101,6 +106,25 @@ void h2StreamConfigWidget::updateUIFromConfig(void)
 		case SkeletonAttitude_Quat:
 		{
 			ui->RB_skeletonQuat->setChecked(true);
+			break;
+		}
+	}
+
+	switch (cfg.skeletonFormat)
+	{
+		case SkeletonFormat_42:
+		{
+			ui->RB_skeleton42->setChecked(true);
+			break;
+		}
+		case SkeletonFormat_OpenXR:
+		{
+			ui->RB_skeletonOpenXR->setChecked(true);
+			break;
+		}
+		default:
+		{
+			ui->RB_skeleton32->setChecked(true);
 			break;
 		}
 	}
@@ -170,6 +194,19 @@ void h2StreamConfigWidget::writeH2StreamConfig(void)
 		cfg.skeletonAttitude = SkeletonAttitude_Quat;
 	}
 
+	if (ui->RB_skeleton32->isChecked())
+	{
+		cfg.skeletonFormat = SkeletonFormat_32;
+	}
+	else if (ui->RB_skeleton42->isChecked())
+	{
+		cfg.skeletonFormat = SkeletonFormat_42;
+	}
+	else if (ui->RB_skeletonOpenXR->isChecked())
+	{
+		cfg.skeletonFormat = SkeletonFormat_OpenXR;
+	}
+
 	if (ui->RB_skeletonLocalCoord->isChecked())
 	{
 		cfg.skeletonCoordinate = SkeletonCoordinate_Relative;
@@ -229,6 +266,7 @@ void h2StreamConfigWidget::retranslateUI()
 		ui->GBX_stream->setTitle(tr("数据流 / Data Stream"));
 		ui->GBX_frame->setTitle(tr("帧设置 / Frame Settings"));
 		ui->GBX_loc->setTitle(tr("位移 / Displacement"));
+		ui->GBX_skeletonFormat->setTitle(tr("骨骼段数 / Skeleton Segments"));
 		ui->GBX_rot->setTitle(tr("旋转 / Rotation"));
 		ui->GBX_rotAxis->setTitle(tr("骨骼旋转系 / Skeleton Rotation System"));
 		ui->GBX_sensorRot->setTitle(tr("传感器原始旋转 / Raw Sensor Rotation"));
@@ -240,6 +278,13 @@ void h2StreamConfigWidget::retranslateUI()
 	if (ui) {
 		ui->RB_binary->setText(tr("二进制 / Binary"));
 		ui->RB_string->setText(tr("字符串 / String"));
+	}
+	
+	// Update skeleton format radio button texts
+	if (ui) {
+		ui->RB_skeleton32->setText(tr("32段骨骼"));
+		ui->RB_skeleton42->setText(tr("42段骨骼"));
+		ui->RB_skeletonOpenXR->setText(tr("OpenXR骨骼"));
 	}
 	
 	// Update skeleton attitude radio button texts
@@ -282,10 +327,5 @@ void h2StreamConfigWidget::retranslateUI()
 		ui->CBX_rtSensorGyro->setText(tr("角速度 / Angular Velocity"));
 		ui->CBX_rtSensorMag->setText(tr("磁力值 / Magnetic Field"));
 		ui->CBX_rtSensorFlex->setText(tr("弯曲传感器 / Flex Sensor"));
-	}
-	
-	// Update label texts
-	if (ui) {
-		ui->LBL_skeleton_hint->setText(tr("双手32段骨骼模型。 / Dual hand 32-segment skeleton model."));
 	}
 }
