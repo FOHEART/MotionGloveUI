@@ -13,6 +13,8 @@
 #include "h2SuitMgr.h"
 #include "h2Widget.h"
 
+#include <QDir>
+#include <QFile>
 #include <QRadioButton>
 #include <QSlider>
 #include <QWidget>
@@ -105,6 +107,16 @@ void h2GloveConfigSnapshotUiTest::cleanup()
 
 void h2GloveConfigSnapshotUiTest::cleanupTestCase()
 {
+    // 用例会调用会落盘的 SDK 接口（ensure / update）。测试进程没有初始化 SDK，
+    // 配置目录为空串，文件会写到当前工作目录，跑完必须清掉，否则会污染仓库根目录。
+    const QStringList leftovers = {
+        QStringLiteral("h2GloveConfig_3E7701.json"),
+        QStringLiteral("h2GloveConfig_3E7702.json"),
+    };
+    for (const QString& name : leftovers)
+    {
+        QFile::remove(QDir::current().filePath(name));
+    }
     m_archive.finalize();
 }
 
