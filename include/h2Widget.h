@@ -263,8 +263,8 @@ private:
     std::string m_actorName;
     /** @brief 当前套装序列号；0 表示未绑定任何设备。 */
     unsigned int m_sn=0;
-    /** @brief 当前手套采集模式，与 SDK 的 h2GloveMode_TypeDef 取值一致。 */
-    h2GloveMode_TypeDef m_MocapGloveMode;
+    /** @brief 当前手套采集模式，与 SDK 的 h2GloveMode_TypeDef 取值一致；出厂为自由模式。 */
+    h2GloveMode_TypeDef m_MocapGloveMode = h2GloveMode_Free;
 
     /** @brief 周期性拉取设备状态的定时器。 */
     QTimer* h2MonitorTimer = nullptr;
@@ -353,6 +353,20 @@ private:
      * @note 滑块或文案控件缺失时直接返回，不抛异常。
      */
     void refreshJointOpacityValueText();
+
+    /**
+     * @brief 按采集模式显示对应的一组手指角度调节控件，隐藏其余两组。
+     *
+     * @details
+     * 三组控件（自由模式 / 分指锁定 / 混合模式）在构造时全部隐藏，只能展示一组。
+     * 本函数**只切换可见性**，不读写配置、不调用 SDK，因此在未绑定设备（`m_sn == 0`）
+     * 时也可以安全调用——软件刚启动时正是靠它在构造末尾显示自由模式那一组，
+     * 否则界面打开后是一片空白，必须先点一次「自由模式」才会出现内容。
+     * 非法模式值等价于全部隐藏。
+     *
+     * @param[in] mode 目标采集模式，取值同 h2GloveMode_TypeDef；越界时隐藏全部三组。
+     */
+    void applyMocapModeWidgetVisibility(h2GloveMode_TypeDef mode);
 
     /** @brief 刷新「骨骼连线」透明度数值文案（"65%" 之类）。 */
     void refreshBoneLineOpacityValueText();

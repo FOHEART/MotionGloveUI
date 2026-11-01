@@ -236,13 +236,47 @@ void h2Widget::setSNAndAN(const unsigned int& suitNumber3E,
 
 }
 
+void h2Widget::applyMocapModeWidgetVisibility(h2GloveMode_TypeDef mode)
+{
+	WIG_fingerAdjustFreeMode_LH->setVisible(false);
+	WIG_fingerAdjustFreeMode_RH->setVisible(false);
+	WIG_fingerAdjustLockYaw_LH->setVisible(false);
+	WIG_fingerAdjustLockYaw_RH->setVisible(false);
+	WIG_fingerAdjustEnhanced_LH->setVisible(false);
+	WIG_fingerAdjustEnhanced_RH->setVisible(false);
+
+	switch (mode)
+	{
+		case h2GloveMode_Free:
+			WIG_fingerAdjustFreeMode_LH->setVisible(true);
+			WIG_fingerAdjustFreeMode_RH->setVisible(true);
+			break;
+		case h2GloveMode_YawLocked:
+			WIG_fingerAdjustLockYaw_LH->setVisible(true);
+			WIG_fingerAdjustLockYaw_RH->setVisible(true);
+			break;
+		case h2GloveMode_Enhanced:
+			WIG_fingerAdjustEnhanced_LH->setVisible(true);
+			WIG_fingerAdjustEnhanced_RH->setVisible(true);
+			break;
+		default:
+			break;
+	}
+}
+
 void h2Widget::onGloveCaptureModeChanged(int index)
 {
 #if 1
-	if (m_sn == 0)
-		return;
 	printf("onGloveCaptureModeChanged:%d\r\n", index);
 	m_MocapGloveMode = (h2GloveMode_TypeDef)index;
+
+	// 未绑定设备时仍要切换可见性：软件刚打开、还没有设备时点击模式按钮，界面同样要跟着变。
+	const bool hasDevice = (m_sn != 0);
+	if (!hasDevice)
+	{
+		applyMocapModeWidgetVisibility(m_MocapGloveMode);
+		return;
+	}
 
 	{
 		/*保存套装的配置文件*/
@@ -264,45 +298,28 @@ void h2Widget::onGloveCaptureModeChanged(int index)
 		}
 	}
 
+	// 可见性统一由 applyMocapModeWidgetVisibility() 处理（它也可在未绑定设备时安全调用），
+	// 这里只补上"显示出来的那组要读配置 + 通知 SDK"。
+	applyMocapModeWidgetVisibility(m_MocapGloveMode);
+	switch (m_MocapGloveMode)
 	{
-		WIG_fingerAdjustFreeMode_LH->setVisible(false);
-		WIG_fingerAdjustFreeMode_RH->setVisible(false);
-		WIG_fingerAdjustLockYaw_LH->setVisible(false);
-		WIG_fingerAdjustLockYaw_RH->setVisible(false);
-		WIG_fingerAdjustEnhanced_LH->setVisible(false);
-		WIG_fingerAdjustEnhanced_RH->setVisible(false);
-		switch (m_MocapGloveMode)
-		{
-			case h2GloveMode_Free:
-			{
-				WIG_fingerAdjustFreeMode_LH->setVisible(true);
-				((h2FingerAdjustFreeModeWidget*)WIG_fingerAdjustFreeMode_LH)->readGloveConfigFileToUI();
-				WIG_fingerAdjustFreeMode_RH->setVisible(true);
-				((h2FingerAdjustFreeModeWidget*)WIG_fingerAdjustFreeMode_RH)->readGloveConfigFileToUI();
-				H2_SDK_setMode(m_sn, m_MocapGloveMode);
-			}
+		case h2GloveMode_Free:
+			((h2FingerAdjustFreeModeWidget*)WIG_fingerAdjustFreeMode_LH)->readGloveConfigFileToUI();
+			((h2FingerAdjustFreeModeWidget*)WIG_fingerAdjustFreeMode_RH)->readGloveConfigFileToUI();
+			H2_SDK_setMode(m_sn, m_MocapGloveMode);
 			break;
-			case h2GloveMode_YawLocked:
-			{
-				WIG_fingerAdjustLockYaw_LH->setVisible(true);
-				((h2FingerAdjustLockYawWidget*)WIG_fingerAdjustLockYaw_LH)->readGloveConfigFileToUI();
-				WIG_fingerAdjustLockYaw_RH->setVisible(true);
-				((h2FingerAdjustLockYawWidget*)WIG_fingerAdjustLockYaw_RH)->readGloveConfigFileToUI();
-				H2_SDK_setMode(m_sn, m_MocapGloveMode);
-			}
+		case h2GloveMode_YawLocked:
+			((h2FingerAdjustLockYawWidget*)WIG_fingerAdjustLockYaw_LH)->readGloveConfigFileToUI();
+			((h2FingerAdjustLockYawWidget*)WIG_fingerAdjustLockYaw_RH)->readGloveConfigFileToUI();
+			H2_SDK_setMode(m_sn, m_MocapGloveMode);
 			break;
-			case h2GloveMode_Enhanced:
-			{
-				WIG_fingerAdjustEnhanced_LH->setVisible(true);
-				((h2FingerAdjustEnhancedWidget*)WIG_fingerAdjustEnhanced_LH)->readGloveConfigFileToUI();
-				WIG_fingerAdjustEnhanced_RH->setVisible(true);
-				((h2FingerAdjustEnhancedWidget*)WIG_fingerAdjustEnhanced_RH)->readGloveConfigFileToUI();
-				H2_SDK_setMode(m_sn, m_MocapGloveMode);
-			}
+		case h2GloveMode_Enhanced:
+			((h2FingerAdjustEnhancedWidget*)WIG_fingerAdjustEnhanced_LH)->readGloveConfigFileToUI();
+			((h2FingerAdjustEnhancedWidget*)WIG_fingerAdjustEnhanced_RH)->readGloveConfigFileToUI();
+			H2_SDK_setMode(m_sn, m_MocapGloveMode);
 			break;
-			default:
-				break;
-		}
+		default:
+			break;
 	}
 #endif
 }
@@ -442,6 +459,10 @@ void h2Widget::initUI()
 	WIG_fingerAdjustFreeMode_RH = new h2FingerAdjustFreeModeWidget(this);
 	WIG_fingerAdjustFreeMode_RH->setObjectName(QStringLiteral("WIG_fingerAdjustFreeMode_RH"));
 	ui->VL_gloveModeConfig->addWidget(WIG_fingerAdjustFreeMode_RH);
+	// 左右手是控件的静态属性、与是否绑定设备无关：必须在这里就设好，否则软件刚打开
+	// （setSNAndAN() 尚未调用）两块面板的标题都是默认的"左手"。
+	static_cast<h2FingerAdjustFreeModeWidget*>(WIG_fingerAdjustFreeMode_LH)->setIsLeftHand(true);
+	static_cast<h2FingerAdjustFreeModeWidget*>(WIG_fingerAdjustFreeMode_RH)->setIsRightHand(true);
 
 	WIG_fingerAdjustLockYaw_LH = new h2FingerAdjustLockYawWidget(this);
 	WIG_fingerAdjustLockYaw_LH->setObjectName(QStringLiteral("WIG_fingerAdjustLockYaw_LH"));
@@ -449,6 +470,8 @@ void h2Widget::initUI()
 	WIG_fingerAdjustLockYaw_RH = new h2FingerAdjustLockYawWidget(this);
 	WIG_fingerAdjustLockYaw_RH->setObjectName(QStringLiteral("WIG_fingerAdjustLockYaw_RH"));
 	ui->VL_gloveModeConfig->addWidget(WIG_fingerAdjustLockYaw_RH);
+	static_cast<h2FingerAdjustLockYawWidget*>(WIG_fingerAdjustLockYaw_LH)->setIsLeftHand(true);
+	static_cast<h2FingerAdjustLockYawWidget*>(WIG_fingerAdjustLockYaw_RH)->setIsRightHand(true);
 
 	WIG_fingerAdjustEnhanced_LH = new h2FingerAdjustEnhancedWidget(this);
 	WIG_fingerAdjustEnhanced_LH->setObjectName(QStringLiteral("WIG_fingerAdjustEnhanced_LH"));
@@ -456,13 +479,13 @@ void h2Widget::initUI()
 	WIG_fingerAdjustEnhanced_RH = new h2FingerAdjustEnhancedWidget(this);
 	WIG_fingerAdjustEnhanced_RH->setObjectName(QStringLiteral("WIG_fingerAdjustEnhanced_RH"));
 	ui->VL_gloveModeConfig->addWidget(WIG_fingerAdjustEnhanced_RH);
+	static_cast<h2FingerAdjustEnhancedWidget*>(WIG_fingerAdjustEnhanced_LH)->setIsLeftHand(true);
+	static_cast<h2FingerAdjustEnhancedWidget*>(WIG_fingerAdjustEnhanced_RH)->setIsRightHand(true);
 
-	WIG_fingerAdjustFreeMode_LH->setVisible(false);
-	WIG_fingerAdjustFreeMode_RH->setVisible(false);
-	WIG_fingerAdjustLockYaw_LH->setVisible(false);
-	WIG_fingerAdjustLockYaw_RH->setVisible(false);
-	WIG_fingerAdjustEnhanced_LH->setVisible(false);
-	WIG_fingerAdjustEnhanced_RH->setVisible(false);
+	// 三组模式控件互斥显示：默认（m_MocapGloveMode = h2GloveMode_Free）直接把自由模式那组显示出来。
+	// 不能只写 setVisible(false)——软件刚打开时没有设备、readGloveConfigFileToUI() 的配置查询也会失败，
+	// 若此处全部隐藏就没有任何代码再把它们显示出来，界面会是一片空白，必须先点一次「自由模式」。
+	applyMocapModeWidgetVisibility(m_MocapGloveMode);
 
 	WIG_h2SkeletonTree = new h2SkeletonWidget(this);
 	WIG_h2SkeletonTree->setObjectName(QStringLiteral("WIG_h2SkeletonTree"));
