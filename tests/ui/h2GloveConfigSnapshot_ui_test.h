@@ -52,6 +52,12 @@ private slots:
     /** @brief 混合模式的滑杆落到增强模式专用字段上。 */
     void enhancedStretchLandsInEnhancedField();
 
+    /** @brief 用户切换采集模式后，新模式写入套装配置。 */
+    void modeSwitchPersistsToSuitConfig();
+
+    /** @brief 软件打开（绑定设备 SN）时，按配置里的模式切换模式单选与对应面板。 */
+    void startupRestoresModeFromConfig();
+
 private:
     QScopedPointer<h2Widget> m_widget; ///< 当前用例的被测控件。
     ScreenshotArchive m_archive{QStringLiteral("h2GloveConfigSnapshotUiTest")}; ///< 截图归档器。

@@ -283,19 +283,14 @@ void h2Widget::onGloveCaptureModeChanged(int index)
 		/*保存套装的配置文件*/
 		/*已经有了信息 更新当前套装的配置信息*/
 		h2GloveMgr newX2Suit;
-		bool isFind = H2_SDK_getCurrentX2SuitBySn(m_sn, newX2Suit);
-		if (isFind)
+		// 用 ensure 而不是 getCurrent：首次切换模式时配置还不存在，getCurrent 查不到就会
+		// 静默返回，用户的选择永远保存不下来。ensure 会先建一份默认配置（已带着默认模式）
+		// 再按下面的不等判断补写用户真正选中的模式。
+		if (H2_SDK_ensureX2SuitBySn(m_sn, newX2Suit) &&
+			m_MocapGloveMode != newX2Suit.GloveMocapMode)
 		{
-			if (m_MocapGloveMode != newX2Suit.GloveMocapMode)
-			{
-				newX2Suit.GloveMocapMode = m_MocapGloveMode;
-				H2_SDK_updateX2SuitMgrVec(m_sn, newX2Suit);
-			}
-		}
-		else
-		{
-			//没找到 不可能出现这种情况
-			printf(" ");
+			newX2Suit.GloveMocapMode = m_MocapGloveMode;
+			H2_SDK_updateX2SuitMgrVec(m_sn, newX2Suit);
 		}
 	}
 
@@ -1356,10 +1351,20 @@ void h2Widget::loadGloveConfigToUI()
 
 	// 缺失时补一份默认配置：否则 readGloveConfigFileToUI() 查不到就直接返回，
 	// 界面上什么都回填不了，后续的保存也没有落点。
+	// ensure 只返回成功与否，不告诉调用方是否新建，所以先用 getCurrent 判断存在性。
 	h2GloveMgr suit;
+	const bool existed = H2_SDK_getCurrentX2SuitBySn(m_sn, suit);
 	if (!H2_SDK_ensureX2SuitBySn(m_sn, suit))
 	{
 		return;
+	}
+
+	if (!existed)
+	{
+		// 新建文件的模式取的是结构体默认值（分指锁定），与界面"出厂自由模式"不一致。
+		// 首次连接时按界面当前模式落盘，避免用户什么都没做就被切到别的模式。
+		suit.GloveMocapMode = m_MocapGloveMode;
+		H2_SDK_updateX2SuitMgrVec(m_sn, suit);
 	}
 
 	readGloveConfigFileToUI();

@@ -40,7 +40,6 @@ const char kFist[] = "HS_figureAngleFist";
 /// 采集模式单选按钮的 objectName，见 ui/h2Widget.ui。
 const char kLockModeRadio[] = "RB_lockMode";
 const char kMixModeRadio[] = "RB_mixMode";
-
 /// 浮点比较容差：滑杆是整数刻度，收集后应能原样还原。
 const float kTolerance = 0.001f;
 
@@ -201,3 +200,65 @@ void h2GloveConfigSnapshotUiTest::enhancedStretchLandsInEnhancedField()
     m_archive.capture(QStringLiteral("enhanced-collect"), m_widget.data(),
                       m_widget->findChild<QWidget*>(QLatin1String(kEnhancedLeft)));
 }
+
+/**
+ * @test   h2GloveConfigSnapshotUiTest::modeSwitchPersistsToSuitConfig
+ * @brief  用户切到「混合模式」后，套装配置里记录的采集模式随之更新。
+ * @details 目的：早期实现只改界面可见性，配置里仍写着旧模式，重启后回到旧模式，
+ *          用户会认为"模式选择没保存"。设计思路：绑定一个 SN 后点击单选按钮
+ *          （与用户操作同一条信号路径），再从 SDK 读回该 SN 的配置断言模式已更新。
+ * @expected getCurrentX2SuitBySn 命中，且 GloveMocapMode == h2GloveMode_Enhanced
+ * @priority P0
+ */
+void h2GloveConfigSnapshotUiTest::modeSwitchPersistsToSuitConfig()
+{
+    const unsigned int sn = 0x3E7701;
+    m_widget->setSNAndAN(sn, "");
+
+    QRadioButton* mixRadio = m_widget->findChild<QRadioButton*>(QLatin1String(kMixModeRadio));
+    QVERIFY2(mixRadio != nullptr, "缺少 RB_mixMode 单选按钮");
+    mixRadio->click();
+
+    h2GloveMgr suit;
+    QVERIFY2(H2_SDK_getCurrentX2SuitBySn(sn, suit),
+             "切换模式后配置里应当存在该序列号（首次切换要创建配置）");
+    QVERIFY2(suit.GloveMocapMode == h2GloveMode_Enhanced,
+             "切换到的模式没有写进套装配置");
+}
+
+/**
+ * @test   h2GloveConfigSnapshotUiTest::startupRestoresModeFromConfig
+ * @brief  配置里存的是「分指锁定」时，软件打开绑定该 SN 后应切到分指锁定那组面板。
+ * @details 目的：用户抱怨"每次打开都是自由模式"，说明启动时没有按配置恢复。
+ *          设计思路：先把该 SN 的配置写成 YawLocked，再新建控件并 setSNAndAN（模拟打开软件），
+ *          断言单选按钮与可见面板都切到分指锁定。
+ * @expected RB_lockMode 被勾选；分指锁定 LH/RH 可见，自由模式 LH/RH 隐藏
+ * @priority P0
+ */
+void h2GloveConfigSnapshotUiTest::startupRestoresModeFromConfig()
+{
+    const unsigned int sn = 0x3E7702;
+    h2GloveMgr stored;
+    stored.SN = sn;
+    stored.GloveMocapMode = h2GloveMode_YawLocked;
+    H2_SDK_updateX2SuitMgrVec(sn, stored);
+
+    m_widget.reset(new h2Widget());
+    m_widget->resize(960, 720);
+    m_widget->show();
+    QVERIFY(QTest::qWaitForWindowExposed(m_widget.data()));
+    m_widget->setSNAndAN(sn, "");
+
+    QRadioButton* lockRadio = m_widget->findChild<QRadioButton*>(QLatin1String(kLockModeRadio));
+    QVERIFY2(lockRadio != nullptr, "缺少 RB_lockMode 单选按钮");
+    QVERIFY2(lockRadio->isChecked(), "启动时没有按配置把模式单选切到分指锁定");
+
+    QWidget* lockLeft = m_widget->findChild<QWidget*>(QLatin1String(kLockYawLeft));
+    QWidget* freeLeft = m_widget->findChild<QWidget*>(QLatin1String(kFreeModeLeft));
+    QVERIFY2(lockLeft != nullptr && freeLeft != nullptr, "缺少模式面板控件");
+    QVERIFY2(!lockLeft->isHidden(), "分指锁定面板没有显示");
+    QVERIFY2(freeLeft->isHidden(), "自由模式面板应当被隐藏");
+
+    m_archive.capture(QStringLiteral("startup-lock-yaw"), m_widget.data(), lockLeft);
+}
+
