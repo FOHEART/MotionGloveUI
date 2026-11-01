@@ -49,6 +49,9 @@ private slots:
     /** @brief 旧的「双手32段骨骼模型」提示标签必须已从界面移除。 */
     void hintLabelRemoved();
 
+    /** @brief 没有配置文件时默认勾选 42 段。 */
+    void skeletonFormatDefaultsTo42WithoutConfig();
+
     /** @brief 新增分组位于「位移」与「旋转」之间，且三个选项互斥。 */
     void skeletonFormatGroupHasThreeExclusiveOptions();
 

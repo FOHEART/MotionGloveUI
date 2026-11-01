@@ -117,6 +117,35 @@ void h2StreamConfigWidgetUiTest::hintLabelRemoved()
 }
 
 /**
+ * @test   h2StreamConfigWidgetUiTest::skeletonFormatDefaultsTo42WithoutConfig
+ * @brief  没有配置文件时，「转发格式」页默认勾选 42 段。
+ * @details 目的：新装机器（`Resources/h2GloveConfig/h2StreamConfig.json` 不存在）时，
+ *          产品要求默认按 42 段输出；界面必须跟着 SDK 的默认值走，
+ *          不能停在 .ui 里写死的 32 段。设计思路：本槽排在会改写流配置的用例之前，
+ *          此时 SDK 里就是"没有配置文件"的默认值；先断言 SDK 字段，
+ *          再断言界面勾选，避免"界面自己猜"这种假通过。
+ * @expected SDK skeletonFormat == SkeletonFormat_42；RB_skeleton42 勾选、RB_skeleton32 未勾选
+ * @priority P0
+ */
+void h2StreamConfigWidgetUiTest::skeletonFormatDefaultsTo42WithoutConfig()
+{
+    h2GloveStreamConfig cfg;
+    H2_SDK_getGloveStreamConfig(&cfg);
+    QVERIFY2(cfg.skeletonFormat == SkeletonFormat_42,
+             "没有配置文件时 SDK 的默认骨骼段数不是 42");
+
+    QRadioButton* radio42 = child<QRadioButton>(m_widget.data(), kFormat42Name);
+    QRadioButton* radio32 = child<QRadioButton>(m_widget.data(), kFormat32Name);
+    QVERIFY2(radio42 != nullptr, "缺少 42 段单选按钮 RB_skeleton42");
+    QVERIFY2(radio32 != nullptr, "缺少 32 段单选按钮 RB_skeleton32");
+
+    QVERIFY2(radio42->isChecked(), "没有配置文件时界面没有默认勾选 42 段");
+    QVERIFY2(!radio32->isChecked(), "没有配置文件时界面不该默认勾选 32 段");
+
+    m_archive.capture(QStringLiteral("01b-default-format-42"), m_widget.data());
+}
+
+/**
  * @test   h2StreamConfigWidgetUiTest::skeletonFormatGroupHasThreeExclusiveOptions
  * @brief  新增的骨骼段数分组在「位移」与「旋转」之间，三个选项互斥。
  * @details 目的：用户要求 32 / 42 / OpenXR 只能三选一，
