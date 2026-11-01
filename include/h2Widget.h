@@ -126,6 +126,25 @@ public:
      */
     int boneLineOpacityPercent() const;
 
+    /**
+     * @brief 把右侧各面板的当前界面值收集成一份套装配置（纯收集，不写盘）。
+     *
+     * @details 覆盖三组模式面板（自由模式 / 分指锁定 / 混合模式）与采集模式本身：
+     *  - 拇指角度写 `angleAdditionEuler[KHS32_*HandThumb1][0..2]`，单位 度（°）；
+     *  - 分指锁定的「分指张开 / 握拳」写 `*FingerAngleStretch` / `*FingerAngleFist`；
+     *  - 混合模式的滑杆写 `*FingerEnhancedModeFistAngle`；
+     *  - 采集模式写 `GloveMocapMode`。
+     *
+     * 只收集**当前采集模式**对应的两块面板：三组面板的拇指滑杆共用同一个
+     * `angleAdditionEuler[Thumb1]` 字段，全部收集会变成"最后遍历到的那组说了算"，
+     * 而用户实际只能编辑可见的那一组。其余模式的字段保持 h2GloveMgr 的默认值，
+     * 因此调用方应在 `getCurrentX2SuitBySn()` 取到的配置上覆盖写，而不是直接落盘。
+     *
+     * @return 收集结果；SN 字段不在此填写，由调用方按当前设备补齐。
+     * @note 只读控件，不调用 SDK，不依赖设备是否在线，可在无窗口的用例里直接调用。
+     */
+    h2GloveMgr collectGloveConfigFromUI() const;
+
 signals:
     /**
      * @brief 骨骼模型透明度滑块数值变化。
@@ -266,6 +285,14 @@ private:
     /** @brief 当前手套采集模式，与 SDK 的 h2GloveMode_TypeDef 取值一致；出厂为自由模式。 */
     h2GloveMode_TypeDef m_MocapGloveMode = h2GloveMode_Free;
 
+    /**
+     * @brief 上一次监控采样时是否有任一只手在线。
+     *
+     * @details 只在"离线→在线"与"在线→离线"这两次跳变上做配置读/写，
+     *          稳态（一直在线或一直离线）什么都不做，否则每秒都会读写一次配置文件。
+     */
+    bool m_gloveOnline = false;
+
     /** @brief 周期性拉取设备状态的定时器。 */
     QTimer* h2MonitorTimer = nullptr;
     /** @brief 监控定时器的触发频率，单位 Hz，默认 1。 */
@@ -304,13 +331,35 @@ private:
     /** @brief 当前界面语言，取值 `"en"` 或 `"zh"`，默认中文。 */
     QString m_language = "zh";
 private:
-    /** @brief 创建并布局全部子面板、应用 CarbonUI 样式、绑定信号槽。 */
+    /**
+     * @brief 创建并布局全部子面板、应用 CarbonUI 样式、绑定信号槽。 */
     void initUI();
     /**
      * @brief 从配置文件读出设置并回填到界面控件。
      * @note 只读取、不写回；设备不可用时保持界面原状。
      */
     void readGloveConfigFileToUI(void);
+
+    /**
+     * @brief 把当前采集模式那两块面板的界面值叠加到一份配置上（不写盘）。
+     * @param[in,out] suit 目标配置；只覆盖本轮面板负责的字段（拇指角度、
+     *                     分指张开/握拳、增强模式角度）与 GloveMocapMode，
+     *                     其余字段（骨骼名、Unity 窗口参数等）保持原值。
+     */
+    void applyGloveConfigFromUI(h2GloveMgr& suit) const;
+
+    /**
+     * @brief 手套上线：确保配置存在（缺失则创建默认配置）并回填到界面。
+     * @note 序列号为 0（未绑定设备）时直接返回。
+     */
+    void loadGloveConfigToUI();
+
+    /**
+     * @brief 手套下线：把界面当前值写回配置文件。
+     * @note 先叠加在已有配置上再落盘，避免把其它字段（骨骼名、Unity 参数）重置成默认值；
+     *       序列号为 0 时直接返回。
+     */
+    void saveGloveConfigFromUI();
 
     /** @brief 枚举系统串口并刷新串口下拉框。 */
     void updateUartPorts(void);

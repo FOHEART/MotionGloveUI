@@ -13,6 +13,7 @@
 
 #include <QtWidgets/QWidget>
 #include "ui_h2FingerAdjustEnhancedWidget.h"
+#include "h2sdk.h"
 
 /**
  * @brief 手指角度调节面板（增强模式）。
@@ -67,6 +68,15 @@ public:
 	 * @note 只读取、不写回；设备不可用时保持界面原状。
 	 */
 	void readGloveConfigFileToUI(void);
+
+	/**
+	 * @brief 把本面板当前的滑杆值写进套装配置结构体（不写盘）。
+	 * @param[in,out] suit 目标配置；只覆盖本面板负责的字段，其余字段保持原值。
+	 * @note 混合模式的滑杆写进 `*FingerEnhancedModeFistAngle`（与该模式落盘字段一致），
+	 *       拇指 X/Y/Z 写进 `angleAdditionEuler[KHS32_*HandThumb1][0..2]`，单位 度（°）。
+	 *       注意不要写成 `*FingerAngleStretch`：那是分指锁定的字段，会互相覆盖。
+	 */
+	void applyUIToConfig(h2GloveMgr& suit) const;
 
 	/**
 	 * @brief 订阅 LanguageManager 的语言切换信号，触发 retranslateUI()。

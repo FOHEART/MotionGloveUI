@@ -141,8 +141,23 @@ void h2FingerAdjustFreeModeWidget::readGloveConfigFileToUI(void)
 	}
 }
 
-bool h2FingerAdjustFreeModeWidget::eventFilter(QObject* obj, QEvent* ev)
+void h2FingerAdjustFreeModeWidget::applyUIToConfig(h2GloveMgr& suit) const
 {
+	if (m_bIsLeftHand)
+	{
+		suit.angleAdditionEuler[KHS32_LeftHandThumb1][0] = ui.HS_thumbFigureAngleX->value();
+		suit.angleAdditionEuler[KHS32_LeftHandThumb1][1] = ui.HS_thumbFigureAngleY->value();
+		suit.angleAdditionEuler[KHS32_LeftHandThumb1][2] = ui.HS_thumbFigureAngleZ->value();
+	}
+	else if (m_bIsRightHand)
+	{
+		suit.angleAdditionEuler[KHS32_RightHandThumb1][0] = ui.HS_thumbFigureAngleX->value();
+		suit.angleAdditionEuler[KHS32_RightHandThumb1][1] = ui.HS_thumbFigureAngleY->value();
+		suit.angleAdditionEuler[KHS32_RightHandThumb1][2] = ui.HS_thumbFigureAngleZ->value();
+	}
+}
+
+bool h2FingerAdjustFreeModeWidget::eventFilter(QObject* obj, QEvent* ev){
 	
 	if (obj == ui.HS_thumbFigureAngleX && ev->type() == QEvent::Wheel)
 	{

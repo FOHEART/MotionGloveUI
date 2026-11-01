@@ -49,3 +49,24 @@ cmake --build out/build/vs-x64-debug --config Debug --target MotionGloveUI
 ```
 
 更多编译说明见 [README.md](README.md)。
+
+## 套装配置的读写时机（h2Widget）
+
+配置存在 `<exe 目录>/Resources/h2GloveConfig/h2GloveConfig_<HEX SN>.json`，由 MotionGloveLLSDK 读写。
+时机约定（改这块前先看 [src/core/h2GloveConfigSync.h](src/core/h2GloveConfigSync.h)）：
+
+| 时机 | 动作 | 入口 |
+|---|---|---|
+| 任一只手**上线**（离线→在线跳变） | 取配置；缺失则创建默认配置并落盘；随后回填模式单选按钮与各面板控件 | `h2Widget::loadGloveConfigToUI()` |
+| 任一只手**下线**（在线→离线跳变） | 把界面当前值叠加到已有配置上再写盘 | `h2Widget::saveGloveConfigFromUI()` |
+| 稳态（一直在线/一直离线） | 什么都不做 | `h2core::decideGloveConfigSyncAction()` 返回 `None` |
+| 用户拖滑块**松手** | 只保存该滑块的字段 | 各面板的 `onSlider…Released()` |
+
+- **不要**把保存写成"查到配置才写"：全新机器上第一份配置正是靠上线的 `ensure` 创建的，
+  早期实现在这里静默返回，导致所有保存都失效。
+- 下线保存必须"先取已有配置再叠加"，否则骨骼名、Unity 窗口参数等不由面板管理的字段会被重置。
+- `h2Widget::collectGloveConfigFromUI()` 只收集**当前采集模式**那两块面板：三组面板的拇指滑杆
+  共用同一个 `angleAdditionEuler[Thumb1]` 字段，全收集会变成"最后遍历到的那组说了算"。
+- 相关用例：`tests/unit/h2GloveConfigSync_test.cpp`（跳变判定）、
+  `tests/ui/h2GloveConfigSnapshot_ui_test.cpp`（界面值 → 配置字段的映射）。
+

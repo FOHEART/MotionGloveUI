@@ -18,11 +18,13 @@
  *  - `h2ui_ui_tests opacity`    只跑 h2WidgetSkeletonOpacityUiTest；
  *  - `h2ui_ui_tests joint`      只跑 h2WidgetJointOpacityUiTest；
  *  - `h2ui_ui_tests mocapmode`  只跑 h2WidgetMocapModePanelUiTest；
+ *  - `h2ui_ui_tests snapshot`   只跑 h2GloveConfigSnapshotUiTest；
  *  - `h2ui_ui_tests streamformat` 只跑 h2StreamConfigWidgetUiTest。
  */
 
 #include "h2GloveDeviceTreeContainerWidget_ui_test.h"
 #include "h2GloveDeviceTreeWidget_ui_test.h"
+#include "h2GloveConfigSnapshot_ui_test.h"
 #include "h2StreamConfigWidget_ui_test.h"
 #include "h2Widget_jointOpacity_ui_test.h"
 #include "h2Widget_mocapModePanel_ui_test.h"
@@ -125,6 +127,12 @@ int main(int argc, char** argv)
     {
         h2WidgetSkeletonOpacityUiTest testCase;
         failed += runClass(&testCase, QStringLiteral("h2WidgetSkeletonOpacityUiTest"),
+                          filteredArgs);
+    }
+    if (selectedClass.isEmpty() || selectedClass == QStringLiteral("snapshot"))
+    {
+        h2GloveConfigSnapshotUiTest testCase;
+        failed += runClass(&testCase, QStringLiteral("h2GloveConfigSnapshotUiTest"),
                           filteredArgs);
     }
     if (selectedClass.isEmpty() || selectedClass == QStringLiteral("mocapmode"))

@@ -8,6 +8,7 @@
 qt5_wrap_cpp(UI_TEST_MOC_SOURCES
   h2GloveDeviceTreeWidget_ui_test.h
   h2GloveDeviceTreeContainerWidget_ui_test.h
+  h2GloveConfigSnapshot_ui_test.h
   h2Widget_skeletonOpacity_ui_test.h
   h2Widget_jointOpacity_ui_test.h
   h2Widget_mocapModePanel_ui_test.h
@@ -19,6 +20,7 @@ add_executable(h2ui_ui_tests
   ui_test_support.cpp
   h2GloveDeviceTreeWidget_ui_test.cpp
   h2GloveDeviceTreeContainerWidget_ui_test.cpp
+  h2GloveConfigSnapshot_ui_test.cpp
   h2Widget_skeletonOpacity_ui_test.cpp
   h2Widget_jointOpacity_ui_test.cpp
   h2Widget_mocapModePanel_ui_test.cpp
@@ -115,6 +117,7 @@ add_test(NAME Ui.DeviceTreeContainer COMMAND h2ui_ui_tests container)
 add_test(NAME Ui.SkeletonOpacity COMMAND h2ui_ui_tests opacity)
 add_test(NAME Ui.JointOpacity COMMAND h2ui_ui_tests joint)
 add_test(NAME Ui.MocapModePanel COMMAND h2ui_ui_tests mocapmode)
+add_test(NAME Ui.GloveConfigSnapshot COMMAND h2ui_ui_tests snapshot)
 add_test(NAME Ui.StreamConfigFormat COMMAND h2ui_ui_tests streamformat)
 
 set_tests_properties(
@@ -123,6 +126,7 @@ set_tests_properties(
   Ui.SkeletonOpacity
   Ui.JointOpacity
   Ui.MocapModePanel
+  Ui.GloveConfigSnapshot
   Ui.StreamConfigFormat
   PROPERTIES
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QPA_FONTDIR=C:/Windows/Fonts;UI_TEST_OUTPUT=${H2_UI_TEST_OUTPUT}"

@@ -20,6 +20,7 @@
 #include "../include/h2Widget.h"
 #include "ui_h2Widget.h"
 #include "h2sdk_def.h"
+#include "core/h2GloveConfigSync.h"
 #include "ui/finger/h2FingerAdjustFreeModeWidget.h"
 #include "ui/finger/h2FingerAdjustLockYawWidget.h"
 #include "ui/finger/h2FingerAdjustEnhancedWidget.h"
@@ -361,6 +362,26 @@ void h2Widget::onH2MonitorTimer()
 	}
 
 	updateUIFromGloveOnlineStatus(isLeftHandOnline, isRightHandOnline);
+
+	// 配置同步只发生在状态跳变上：上线读回填（缺失则先建默认配置），
+	// 下线把界面值写盘。稳态什么都不做，否则每秒都会读写一次配置文件。
+	// 序列号还没绑定（m_sn == 0）时不消费跳变，等 SN 有了再补做一次读取。
+	if (m_sn != 0)
+	{
+		const bool anyHandOnline = (isLeftHandOnline != 0) || (isRightHandOnline != 0);
+		switch (h2core::decideGloveConfigSyncAction(m_gloveOnline, anyHandOnline))
+		{
+			case h2core::GloveConfigSyncAction::Load:
+				loadGloveConfigToUI();
+				break;
+			case h2core::GloveConfigSyncAction::Save:
+				saveGloveConfigFromUI();
+				break;
+			default:
+				break;
+		}
+		m_gloveOnline = anyHandOnline;
+	}
 
 	unsigned int leftHandFrameRate = 0;
 	unsigned int rightHandFrameRate = 0;
@@ -1261,8 +1282,109 @@ int h2Widget::boneLineOpacityPercent() const
 	return ui->SL_boneLineOpacity->value();
 }
 
-void h2Widget::refreshBoneLineOpacityValueText()
+h2GloveMgr h2Widget::collectGloveConfigFromUI() const
 {
+	h2GloveMgr suit;
+	applyGloveConfigFromUI(suit);
+	return suit;
+}
+
+void h2Widget::applyGloveConfigFromUI(h2GloveMgr& suit) const
+{
+	suit.GloveMocapMode = m_MocapGloveMode;
+
+	// 只收集当前采集模式那两块面板：三组面板的拇指滑杆共用同一个
+	// angleAdditionEuler[Thumb1] 字段，全收集会变成"最后遍历到的那组说了算"，
+	// 而用户能编辑的只有可见的那一组。
+	switch (m_MocapGloveMode)
+	{
+		case h2GloveMode_YawLocked:
+		{
+			h2FingerAdjustLockYawWidget* panels[] = {
+				static_cast<h2FingerAdjustLockYawWidget*>(WIG_fingerAdjustLockYaw_LH),
+				static_cast<h2FingerAdjustLockYawWidget*>(WIG_fingerAdjustLockYaw_RH),
+			};
+			for (h2FingerAdjustLockYawWidget* panel : panels)
+			{
+				if (panel)
+				{
+					panel->applyUIToConfig(suit);
+				}
+			}
+			break;
+		}
+		case h2GloveMode_Enhanced:
+		{
+			h2FingerAdjustEnhancedWidget* panels[] = {
+				static_cast<h2FingerAdjustEnhancedWidget*>(WIG_fingerAdjustEnhanced_LH),
+				static_cast<h2FingerAdjustEnhancedWidget*>(WIG_fingerAdjustEnhanced_RH),
+			};
+			for (h2FingerAdjustEnhancedWidget* panel : panels)
+			{
+				if (panel)
+				{
+					panel->applyUIToConfig(suit);
+				}
+			}
+			break;
+		}
+		case h2GloveMode_Free:
+		default:
+		{
+			h2FingerAdjustFreeModeWidget* panels[] = {
+				static_cast<h2FingerAdjustFreeModeWidget*>(WIG_fingerAdjustFreeMode_LH),
+				static_cast<h2FingerAdjustFreeModeWidget*>(WIG_fingerAdjustFreeMode_RH),
+			};
+			for (h2FingerAdjustFreeModeWidget* panel : panels)
+			{
+				if (panel)
+				{
+					panel->applyUIToConfig(suit);
+				}
+			}
+			break;
+		}
+	}
+}
+
+void h2Widget::loadGloveConfigToUI()
+{
+	if (m_sn == 0)
+	{
+		return;
+	}
+
+	// 缺失时补一份默认配置：否则 readGloveConfigFileToUI() 查不到就直接返回，
+	// 界面上什么都回填不了，后续的保存也没有落点。
+	h2GloveMgr suit;
+	if (!H2_SDK_ensureX2SuitBySn(m_sn, suit))
+	{
+		return;
+	}
+
+	readGloveConfigFileToUI();
+}
+
+void h2Widget::saveGloveConfigFromUI()
+{
+	if (m_sn == 0)
+	{
+		return;
+	}
+
+	// 先取已有配置再叠加界面值：整份覆盖会把骨骼名、Unity 窗口参数等
+	// 不由这些面板管理的字段一起重置成默认值。
+	h2GloveMgr suit;
+	if (!H2_SDK_ensureX2SuitBySn(m_sn, suit))
+	{
+		return;
+	}
+
+	applyGloveConfigFromUI(suit);
+	H2_SDK_updateX2SuitMgrVec(m_sn, suit);
+}
+
+void h2Widget::refreshBoneLineOpacityValueText(){
 	if (!ui || !ui->SL_boneLineOpacity || !ui->LBL_boneLineOpacityValue) return;
 
 	ui->LBL_boneLineOpacityValue->setText(

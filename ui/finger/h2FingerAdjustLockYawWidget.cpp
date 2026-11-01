@@ -356,6 +356,30 @@ void h2FingerAdjustLockYawWidget::onSliderThumbFigureAngleZReleased()
 	}
 }
 
+void h2FingerAdjustLockYawWidget::applyUIToConfig(h2GloveMgr& suit) const
+{
+	const int thumbIndex = m_bIsLeftHand ? KHS32_LeftHandThumb1 : KHS32_RightHandThumb1;
+	if (!m_bIsLeftHand && !m_bIsRightHand)
+	{
+		return;
+	}
+
+	if (m_bIsLeftHand)
+	{
+		suit.LeftFingerAngleStretch = ui.HS_figureAngleStretch->value();
+		suit.LeftFingerAngleFist = ui.HS_figureAngleFist->value();
+	}
+	else
+	{
+		suit.RightFingerAngleStretch = ui.HS_figureAngleStretch->value();
+		suit.RightFingerAngleFist = ui.HS_figureAngleFist->value();
+	}
+
+	suit.angleAdditionEuler[thumbIndex][0] = ui.HS_thumbFigureAngleX->value();
+	suit.angleAdditionEuler[thumbIndex][1] = ui.HS_thumbFigureAngleY->value();
+	suit.angleAdditionEuler[thumbIndex][2] = ui.HS_thumbFigureAngleZ->value();
+}
+
 bool h2FingerAdjustLockYawWidget::eventFilter(QObject* obj, QEvent* ev)
 {
 	if (obj == ui.HS_figureAngleStretch && ev->type() == QEvent::Wheel)

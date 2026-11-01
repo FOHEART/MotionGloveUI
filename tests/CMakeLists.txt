@@ -33,6 +33,7 @@ endif()
 
 # ── 用例目标 ──────────────────────────────────────────────────────────────
 add_executable(h2ui_unit_tests
+  unit/h2GloveConfigSync_test.cpp
   unit/h2NetAddress_test.cpp
   unit/h2RatioConversion_test.cpp
   unit/h2TextWrap_test.cpp

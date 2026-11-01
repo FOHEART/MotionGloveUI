@@ -13,6 +13,7 @@
 
 #include <QtWidgets/QWidget>
 #include "ui_h2FingerAdjustLockYawWidget.h"
+#include "h2sdk.h"
 
 /**
  * @brief 手指角度调节面板（锁定偏航模式）。
@@ -66,6 +67,14 @@ public:
 	 * @note 只读取、不写回；设备不可用时保持界面原状。
 	 */
 	void readGloveConfigFileToUI(void);
+
+	/**
+	 * @brief 把本面板当前的滑杆值写进套装配置结构体（不写盘）。
+	 * @param[in,out] suit 目标配置；只覆盖本面板负责的字段，其余字段保持原值。
+	 * @note 分指张开写 `*FingerAngleStretch`、握拳写 `*FingerAngleFist`、
+	 *       拇指 X/Y/Z 写进 `angleAdditionEuler[KHS32_*HandThumb1][0..2]`，单位 度（°）。
+	 */
+	void applyUIToConfig(h2GloveMgr& suit) const;
 
 	/**
 	 * @brief 控制配置项左侧说明标签（如「张开」「握拳」）是否显示。

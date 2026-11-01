@@ -141,6 +141,28 @@ void h2FingerAdjustEnhancedWidget::readGloveConfigFileToUI(void)
 	}
 }
 
+void h2FingerAdjustEnhancedWidget::applyUIToConfig(h2GloveMgr& suit) const
+{
+	const int thumbIndex = m_bIsLeftHand ? KHS32_LeftHandThumb1 : KHS32_RightHandThumb1;
+	if (!m_bIsLeftHand && !m_bIsRightHand)
+	{
+		return;
+	}
+
+	if (m_bIsLeftHand)
+	{
+		suit.LeftFingerEnhancedModeFistAngle = ui.HS_figureAngleStretch->value();
+	}
+	else
+	{
+		suit.RightFingerEnhancedModeFistAngle = ui.HS_figureAngleStretch->value();
+	}
+
+	suit.angleAdditionEuler[thumbIndex][0] = ui.HS_thumbFigureAngleX->value();
+	suit.angleAdditionEuler[thumbIndex][1] = ui.HS_thumbFigureAngleY->value();
+	suit.angleAdditionEuler[thumbIndex][2] = ui.HS_thumbFigureAngleZ->value();
+}
+
 bool h2FingerAdjustEnhancedWidget::eventFilter(QObject* obj, QEvent* ev)
 {
 	if (obj == ui.HS_figureAngleStretch && ev->type() == QEvent::Wheel)
