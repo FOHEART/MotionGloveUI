@@ -31,8 +31,10 @@ else
         || { echo "[ERROR] cmake configure failed"; exit 1; }
 fi
 
-echo "[2/3] build: h2ui_unit_tests h2ui_ui_tests [$CONFIG]"
-cmake --build "$BUILD" --target h2ui_unit_tests h2ui_ui_tests -j"$JOBS" \
+echo "[2/3] build: 全部目标（含依赖侧测试）[$CONFIG]"
+# CPM 依赖也注册了 ctest 用例（glovell_unit_tests、Cli.SelfCheck 等），只编
+# 本项目两个测试目标会让它们变成 NOT_BUILT / Not Run，ctest 以 8 退出。
+cmake --build "$BUILD" -j"$JOBS" \
     || { echo "[ERROR] build failed"; exit 1; }
 
 echo "[3/3] ctest [$CONFIG]"

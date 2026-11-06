@@ -79,8 +79,9 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo [2/3] build: h2ui_unit_tests h2ui_ui_tests [%CONFIG%]
-cmake --build "%BUILD%" --config %CONFIG% --target h2ui_unit_tests h2ui_ui_tests
+echo [2/3] build: 全部目标（含依赖侧测试）[%CONFIG%]
+REM CPM 依赖同样注册了 ctest 用例，只编本项目两个目标会让它们 Not Run
+cmake --build "%BUILD%" --config %CONFIG%
 if errorlevel 1 (
     echo [ERROR] build failed
     exit /b 1

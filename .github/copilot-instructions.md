@@ -4,6 +4,9 @@
 入口、调用链与维护约定：新增/改名/移动脚本时，必须同步更新本表，并同步修改调用方路径与
 脚本内的 ROOT 推导层级。
 
+**编译/测试必须遵守第八节的顺序：先在本机 WSL（Ubuntu-24.04）跑构建与测试，通过后再检查
+GitHub Actions CI/CD 结果**，不要直接推远端等结果。
+
 ## 一、根目录入口
 
 | 脚本 | 作用 | 常用命令 |
@@ -22,7 +25,7 @@
 | --- | --- | --- |
 | `scripts\build.bat` | 配置 + 编译 + 安装 + 部署：Windows 按年份选 VS 生成器（`2022` → `Visual Studio 17 2022`，`2026` → `Visual Studio 18 2026`），默认构建 Debug/Release 两份；Linux 用 CMake 默认生成器 | `scripts\build.bat 2022 Release`、`sh scripts/build.bat Release` |
 | `scripts\deploy.bat` | `cmake --install` 到 `out\install\x64-<配置>`，并汇总 `include\*.h` 与源码树 `lib\<配置>` 下的 `.lib`/`.dll`（Linux 为 `libMotionGloveUI.so*`） | `scripts\deploy.bat Debug [构建树]`、`sh scripts/deploy.bat Release` |
-| `scripts\test.bat` | 独立构建树 `out\build\tdd-tests` 中构建 `h2ui_unit_tests`、`h2ui_ui_tests` 并跑 ctest；第二参数是 `ctest -R` 正则 | `scripts\test.bat Release "Unit\..*"`、`sh scripts/test.bat Release Unit` |
+| `scripts\test.bat` | 独立构建树 `out\build\tdd-tests` 中构建**全部目标**（含 CPM 依赖注册的 `glovell_unit_tests`、`Cli.SelfCheck`，只编本项目两个目标会让它们 `Not Run` 并让 ctest 以 8 退出）后跑 ctest；第二参数是 `ctest -R` 正则 | `scripts\test.bat Release "Unit\..*"`、`sh scripts/test.bat Release Unit` |
 | `scripts\gen_docs.bat` | Doxygen 文档：默认 `D:\autotools\doxygen-1.11.0\doxygen.exe`，可用 `DOXYGEN` 覆盖；告警即失败，日志归集到 `out\doxygen\doxygen_warnings.log`；Windows 成功后打开 `docs\html\index.html` | `scripts\gen_docs.bat`、`sh scripts/gen_docs.bat` |
 | `scripts\package.bat` | 打可分发源码 ZIP，输出到 `out\pack\MotionGloveUI_v<版本>.zip`；版本号缺省取 `Doxyfile` 的 `PROJECT_NUMBER` | `scripts\package.bat [版本号]`、`sh scripts/package.bat` |
 | `scripts\git_pull_latest.bat` | 从 `origin/main` 拉取最新代码并打印最近 5 条提交 | `scripts\git_pull_latest.bat`、`sh scripts/git_pull_latest.bat` |
@@ -57,7 +60,15 @@ HTTPS 还是 SSH，默认 `OFF`）、`DOXYGEN`（doxygen 路径）。
 | `scripts\wsl\wsl.bat docs` | 副本内用 WSL 自带 doxygen 复验文档门禁 |
 | `scripts\wsl\wsl.bat verify` | build → test → docs，任一失败即停（无参数默认） |
 
-可覆写：`WSL_DISTRO`（默认 `Ubuntu-24.04`）、`WSL_DEST`、`WSL_QTDIR`；日志固定写 `~/wsl_last.log`。
+可覆写：`WSL_DISTRO`（默认 `Ubuntu-24.04`）、`WSL_DEST`（默认 `~/MotionGloveUI`）、`WSL_QTDIR`；
+日志固定写 `~/wsl_last.log`。本机发行版默认用户为 `rmpro`，需要 `sudo` 装包时由使用者在执行时
+提供凭据，**不要把用户名/密码/令牌写进仓库文件**。
+
+Linux 侧编译前置条件：系统 Qt5（`qtbase5-dev` + **`qtmultimedia5-dev`**，缺后者会报
+`QtMultimedia/QMediaPlayer: No such file or directory`）、cmake、g++、git、rsync。私有 CPM 依赖
+（CarbonUI / MotionGloveLLSDK）需要 GitHub 令牌：优先用 `GIT_CONFIG_COUNT=1` +
+`GIT_CONFIG_KEY_0=url.https://x-access-token:<token>@github.com/.insteadOf` +
+`GIT_CONFIG_VALUE_0=https://github.com/` 以环境变量注入，**不要写入 git config 或脚本**。
 
 ## 五、内部子脚本（不进用户入口表）
 
@@ -84,3 +95,22 @@ HTTPS 还是 SSH，默认 `OFF`）、`DOXYGEN`（doxygen 路径）。
 根目录的 `[Windows]git_pull_latest.cmd`、`[Windows]open_in_vscode.bat`、`[Linux]git_pull_latest.sh`、
 `[Linux]open_in_vscode.sh` 已删除；不要再引用它们，对应功能分别由 `scripts\git_pull_latest.bat` 和
 `scripts\open_in_vscode.bat` 的双解释器分支提供。
+
+## 八、编译测试与 CI/CD 顺序（必守）
+
+1. **先本机 WSL**：发行版 `Ubuntu-24.04`、用户 `rmpro`，按第四节跑
+   `scripts\wsl\wsl.bat build Release` → `scripts\wsl\wsl.bat test Release`（或 `verify` 加文档门禁）。
+   构建/测试树在 WSL 家目录副本里，与 Windows 的 `out\` 隔离；Linux 侧全绿才算本地通过。
+2. **再提交/推送**：本地通过后提交改动并 `git push origin main`，由
+   `.github/workflows/cmake-multi-platform.yml` 触发 CI。
+3. **最后查 CI/CD**：`scripts\ci\check_ci.bat -Limit 5` 找本次运行，`-RunId <id>` 看失败日志，
+   `-Watch` 等结论；自动化环境里 `gh run watch` 长时间无输出会被判空闲，改用
+   `gh run view <id> --json status,conclusion` 分段轮询。失败 job 可用
+   `scripts\ci\rerun_failed.bat -RunId <id> -DryRun` 预演。
+
+CI 的 runner 标签固定为 **`ubuntu-24.04`**（与本机 WSL 同版本），不要用 `-latest` 或
+`ubuntu-22.04`。改 `matrix.os` 时必须同步 `include` 里的 `os:` 与所有
+`if: matrix.os == 'ubuntu-24.04'` 条件，否则装依赖/装 Qt 步骤会被静默跳过。
+
+排障提示：CPM 依赖按 `GIT_TAG main` 拉取，用例数会随上游变化；若只有 Windows job 的
+`Cli.SelfCheck` 超时而 Ubuntu job 全绿，先按上游依赖问题处理，不要反向改本仓库脚本。

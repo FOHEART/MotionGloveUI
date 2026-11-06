@@ -14,7 +14,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-22.04]
+        # 固定 Ubuntu 24.04：避免 runner 镜像漂移导致 Qt/系统库组合变化；
+        # 改动 os 标签时必须同步 include 与所有 if: matrix.os == 条件。
+        os: [windows-latest, ubuntu-24.04]
         build_type: [Release]
         build_shared: [ON, OFF]
         include:
@@ -24,7 +26,7 @@ jobs:
             qt_version: 5.15.2
             qt_host: windows
             qt_arch: win64_msvc2019_64
-          - os: ubuntu-22.04
+          - os: ubuntu-24.04
             c_compiler: gcc
             cpp_compiler: g++
             qt_version: 5.14.2
@@ -111,7 +113,7 @@ jobs:
         install-deps: true
 
     - name: Install system dependencies (Ubuntu only)
-      if: matrix.os == 'ubuntu-22.04'
+      if: matrix.os == 'ubuntu-24.04'
       shell: bash
       run: |
         sudo apt-get update
