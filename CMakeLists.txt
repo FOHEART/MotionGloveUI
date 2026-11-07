@@ -86,6 +86,12 @@ CPMAddPackage(
     NAME MotionGloveLLSDK
     GIT_REPOSITORY ${H2SDK_GIT_REPOSITORY}
     GIT_TAG main
+    # 本工程只链接 SDK 库，不需要它的 CLI-Anything 命令行前端。
+    # SDK 的 tests/CMakeLists.txt 仅在存在 motionglovellsdk-cli 目标时注册
+    # Cli.SelfCheck（--json --self-check，TIMEOUT 30）；该用例在本仓库的 Windows CI 上
+    # 会挂起超时，Linux 侧却瞬时通过。关闭 CLI 即可从注册源头移除该用例，
+    # SDK 自身的 GoogleTest 用例仍照常参与 ctest。上游 Windows 挂起需在 SDK 侧修复。
+    OPTIONS "GLOVE_HMAX_SDK_BUILD_CLI OFF"
      # Prevent update attempts that require deleting the existing source dir.
     # This improves reliability on Windows/CI where files can be temporarily locked.
     # 防止更新时尝试删除现有源码目录。
