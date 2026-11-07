@@ -111,6 +111,10 @@ Linux 侧编译前置条件：系统 Qt5（`qtbase5-dev` + **`qtmultimedia5-dev`
 CI 的 runner 标签固定为 **`ubuntu-24.04`**（与本机 WSL 同版本），不要用 `-latest` 或
 `ubuntu-22.04`。改 `matrix.os` 时必须同步 `include` 里的 `os:` 与所有
 `if: matrix.os == 'ubuntu-24.04'` 条件，否则装依赖/装 Qt 步骤会被静默跳过。
+矩阵只保留 `build_shared: [ON]`（发布形态是动态库，只测共享库），静态库组合留给本地构建；
+每轮 job 数固定为 2。官方 Action 固定用 Node.js 24 主版本
+（`actions/checkout@v6`、`actions/cache@v6`、`actions/setup-python@v6`），避免出现
+`Node.js 20 is deprecated` 警告；`jurplel/install-qt-action@v4` 是 composite，无需升级。
 
 排障提示：CPM 依赖按 `GIT_TAG main` 拉取，用例数会随上游变化。曾经 `MotionGloveLLSDK`
 新增的 `Cli.SelfCheck`（`motionglovellsdk-cli --json --self-check`，TIMEOUT 30）只在 Windows

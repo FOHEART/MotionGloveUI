@@ -1,4 +1,4 @@
-# CMake build matrix: Windows (MSVC) and Linux (GCC), shared and static.
+# CMake build matrix: Windows (MSVC) and Linux (GCC), shared library only.
 name: CMake on multiple platforms
 
 on:
@@ -18,7 +18,9 @@ jobs:
         # 改动 os 标签时必须同步 include 与所有 if: matrix.os == 条件。
         os: [windows-latest, ubuntu-24.04]
         build_type: [Release]
-        build_shared: [ON, OFF]
+        # 发布形态是动态库，CI 只跑 ON；静态库组合留给本地构建覆盖。
+        # 裁剪后 job 数 = 2(os) x 1(build_type) x 1(build_shared) = 2。
+        build_shared: [ON]
         include:
           - os: windows-latest
             c_compiler: cl
@@ -42,7 +44,9 @@ jobs:
       BUILD_DIR: ${{ github.workspace }}/build
 
     steps:
-    - uses: actions/checkout@v4
+    # 官方 Action 统一使用 node24 主版本，避免 "Node.js 20 is deprecated" 警告；
+    # jurplel/install-qt-action@v4 是 composite，内部已用 setup-python v6。
+    - uses: actions/checkout@v6
       with:
         # Keep the workflow GITHUB_TOKEN out of .git/config. Its http.extraheader takes
         # precedence over the XSTYPES_PAT credentials set below, which makes every
@@ -87,13 +91,13 @@ jobs:
 
     - name: Setup Python (Windows only)
       if: matrix.os == 'windows-latest'
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: '3.x'
 
     - name: Restore Qt cache
       id: qt-cache
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ${{ env.QT_CACHE_DIR }}
         key: ${{ runner.os }}-qt-${{ matrix.qt_version }}-${{ matrix.qt_arch }}
