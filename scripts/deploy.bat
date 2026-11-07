@@ -2,7 +2,9 @@
 @echo off
 chcp 65001 >nul
 REM  chcp 必须在任何多字节内容之前；双解释器脚本须 CRLF、无 BOM。
-REM  deploy.bat -- cmake --install + 汇总公共头文件与库产物到 out\install
+REM  deploy.bat -- 把 MotionGloveUI 的库产物与公共头文件汇总到 out\install
+REM  （产物在构建树里，源码树不再生成 lib\；刻意不用 cmake --install，
+REM   否则会连带执行 CPM 依赖的 install 规则，把上游头文件/静态库装进来）
 REM  用法（Windows）：scripts\deploy.bat [Debug|Release] [构建树目录]
 REM  用法（Linux）  ：sh scripts/deploy.bat [Debug|Release] [构建树目录]
 setlocal EnableDelayedExpansion
@@ -27,35 +29,32 @@ if not exist "%BDIR%\CMakeCache.txt" (
 
 set "INSTALL=%ROOT%\out\install\x64-%CONFIG%"
 
-echo   -^> 安装到 %INSTALL%
-cmake --install "%BDIR%" --config %CONFIG% --prefix "%INSTALL%"
-if errorlevel 1 (
-    echo [ERROR] cmake --install failed, exit code: !errorlevel!
-    exit /b 1
-)
-
 echo   -^> 汇总产物到 %INSTALL%
-REM 只清空汇总子目录（幂等重跑），保留 cmake --install 的其它安装产物
+REM 先清空安装子目录，保证幂等重跑（例如头文件改名后不残留旧文件）
 if exist "%INSTALL%\include" rd /s /q "%INSTALL%\include"
 if exist "%INSTALL%\lib" rd /s /q "%INSTALL%\lib"
 md "%INSTALL%\include" 2>nul
 md "%INSTALL%\lib" 2>nul
 
-REM 公共头文件在 include\；库产物由 CMakeLists 输出到源码树 lib\<配置>
 copy /y "%ROOT%\include\*.h" "%INSTALL%\include\" >nul 2>nul
-set "LIBSRC=%ROOT%\lib\%CONFIG%"
-if not exist "%LIBSRC%" set "LIBSRC=%BDIR%\%CONFIG%"
-if not exist "%LIBSRC%" set "LIBSRC=%BDIR%"
-copy /y "%LIBSRC%\*.lib" "%INSTALL%\lib\" >nul 2>nul
-copy /y "%LIBSRC%\*.dll" "%INSTALL%\lib\" >nul 2>nul
+
+REM 库产物在构建树\<配置>\（CMakeLists 固定 RUNTIME/LIBRARY/ARCHIVE 到该目录）
+set "LIBSRC=%BDIR%\%CONFIG%"
+if not exist "%LIBSRC%\MotionGloveUI.dll" if not exist "%LIBSRC%\MotionGloveUI.lib" set "LIBSRC=%BDIR%"
+copy /y "%LIBSRC%\MotionGloveUI.dll" "%INSTALL%\lib\" >nul 2>nul
+copy /y "%LIBSRC%\MotionGloveUI.lib" "%INSTALL%\lib\" >nul 2>nul
 
 set "HDR_COUNT=0"
 set "LIB_COUNT=0"
 for /f "delims=" %%F in ('dir /b /a-d "%INSTALL%\include\*.h" 2^>nul') do set /a HDR_COUNT+=1
-for /f "delims=" %%F in ('dir /b /a-d "%INSTALL%\lib\*.lib" "%INSTALL%\lib\*.dll" 2^>nul') do set /a LIB_COUNT+=1
+for /f "delims=" %%F in ('dir /b /a-d "%INSTALL%\lib\*" 2^>nul') do set /a LIB_COUNT+=1
 echo      %INSTALL%：!HDR_COUNT! 个头文件，!LIB_COUNT! 个库文件
 if "!HDR_COUNT!"=="0" (
     echo [ERROR] 未汇总到头文件，请检查 include\ 目录。
+    exit /b 1
+)
+if "!LIB_COUNT!"=="0" (
+    echo [ERROR] 未汇总到 MotionGloveUI 库产物，请先完成构建。
     exit /b 1
 )
 exit /b 0
@@ -80,21 +79,19 @@ fi
 
 INSTALL="$ROOT/out/install/x64-$CONFIG"
 
-echo "  -> 安装到 $INSTALL"
-cmake --install "$BDIR" --prefix "$INSTALL" || { echo "[ERROR] install failed"; exit 1; }
-
 echo "  -> 汇总产物到 $INSTALL"
+# 先清空安装子目录，保证幂等重跑；库产物在构建树里（源码树不再生成 lib\）
 rm -rf "$INSTALL/include" "$INSTALL/lib"
 mkdir -p "$INSTALL/include" "$INSTALL/lib"
 
 cp "$ROOT"/include/*.h "$INSTALL/include/" 2>/dev/null
 
-# CMakeLists 把库产物输出到源码树的 lib/<配置>；单配置生成器也可能落在构建树根
-LIBSRC="$ROOT/lib/$CONFIG"
-[ -d "$LIBSRC" ] || LIBSRC="$BDIR"
+# 库产物在构建树/<配置>/（CMakeLists 固定 RUNTIME/LIBRARY/ARCHIVE 到该目录）
+LIBSRC="$BDIR/$CONFIG"
+[ -f "$LIBSRC/libMotionGloveUI.so" ] || [ -f "$LIBSRC/libMotionGloveUI.a" ] || LIBSRC="$BDIR"
 
 count=0
-for f in "$LIBSRC"/libMotionGloveUI.so* "$LIBSRC"/libMotionGloveUI.a "$LIBSRC"/*.dll "$LIBSRC"/*.lib; do
+for f in "$LIBSRC"/libMotionGloveUI.so* "$LIBSRC"/libMotionGloveUI.a "$LIBSRC"/MotionGloveUI.dll "$LIBSRC"/MotionGloveUI.lib; do
     [ -f "$f" ] || continue
     cp "$f" "$INSTALL/lib/" || exit 1
     count=$((count + 1))
@@ -104,6 +101,10 @@ hdr=$(find "$INSTALL/include" -maxdepth 1 -name '*.h' | wc -l | tr -d ' ')
 echo "     $INSTALL：$hdr 个头文件，$count 个库文件"
 if [ "$hdr" -eq 0 ]; then
     echo "[ERROR] 未汇总到头文件，请检查 include/ 目录。"
+    exit 1
+fi
+if [ "$count" -eq 0 ]; then
+    echo "[ERROR] 未汇总到 MotionGloveUI 库产物，请先完成构建。"
     exit 1
 fi
 if [ "$count" -gt 0 ]; then

@@ -24,7 +24,7 @@ GitHub Actions CI/CD 结果**，不要直接推远端等结果。
 | 脚本 | 作用 | 常用命令 |
 | --- | --- | --- |
 | `scripts\build.bat` | 配置 + 编译 + 安装 + 部署：Windows 按年份选 VS 生成器（`2022` → `Visual Studio 17 2022`，`2026` → `Visual Studio 18 2026`），默认构建 Debug/Release 两份；Linux 用 CMake 默认生成器 | `scripts\build.bat 2022 Release`、`sh scripts/build.bat Release` |
-| `scripts\deploy.bat` | `cmake --install` 到 `out\install\x64-<配置>`，并汇总 `include\*.h` 与源码树 `lib\<配置>` 下的 `.lib`/`.dll`（Linux 为 `libMotionGloveUI.so*`） | `scripts\deploy.bat Debug [构建树]`、`sh scripts/deploy.bat Release` |
+| `scripts\deploy.bat` | 从构建树把 `MotionGloveUI` 的 `.dll`/`.lib`（Linux 为 `libMotionGloveUI.so*`/`.a`）与 `include\*.h` 汇总到 `out\install\x64-<配置>`；**源码树不再生成 `lib\`，也刻意不用 `cmake --install`**（会连带执行 CPM 依赖的 install 规则，把上游头文件/静态库装进 `out\install`） | `scripts\deploy.bat Debug [构建树]`、`sh scripts/deploy.bat Release` |
 | `scripts\test.bat` | 独立构建树 `out\build\tdd-tests` 中构建**全部目标**（含 CPM 依赖注册的 `glovell_unit_tests`、`Cli.SelfCheck`，只编本项目两个目标会让它们 `Not Run` 并让 ctest 以 8 退出）后跑 ctest；第二参数是 `ctest -R` 正则 | `scripts\test.bat Release "Unit\..*"`、`sh scripts/test.bat Release Unit` |
 | `scripts\gen_docs.bat` | Doxygen 文档：默认 `D:\autotools\doxygen-1.11.0\doxygen.exe`，可用 `DOXYGEN` 覆盖；告警即失败，日志归集到 `out\doxygen\doxygen_warnings.log`；Windows 成功后打开 `docs\html\index.html` | `scripts\gen_docs.bat`、`sh scripts/gen_docs.bat` |
 | `scripts\package.bat` | 打可分发源码 ZIP，输出到 `out\pack\MotionGloveUI_v<版本>.zip`；版本号缺省取 `Doxyfile` 的 `PROJECT_NUMBER` | `scripts\package.bat [版本号]`、`sh scripts/package.bat` |
@@ -87,7 +87,9 @@ Linux 侧编译前置条件：系统 Qt5（`qtbase5-dev` + **`qtmultimedia5-dev`
 - ROOT 推导按层级：根目录脚本 `%~dp0.` / `dirname "$0"`，`scripts\` 层 `%~dp0..` / `dirname "$0"/..`，两层子目录再多一级 `..`。
 - cmd 的 `echo` 内容里禁止裸 `<` `>`，箭头写成 `-^>`；括号块内刚自增的变量用 `!VAR!` 延迟展开；不要用 `catalog_productLineVersion` 推生成器。
 - 每步用 `if errorlevel 1 goto :failed` 之类的检查把退出码传出去；`ctest` 零用例必须判失败（先 `ctest -N` 断言 `Total Tests: [1-9]`），不能只看返回 0。
-- 生成物只进 `out\`（例外：CMakeLists 把库产物输出到源码树 `lib\<配置>`，由 `deploy.bat` 汇总）；打包脚本排除 `out/`、`lib/`、`.git*`、`.github/`、`.codebuddy/`、`docs/html`、`scripts/ci`、`scripts/wsl`、`git_pull_latest.bat`、`release.bat`、`AGENTS.md`、`CMakeUserPresets.json`。新增内部脚本或 README 章节时，先确认不会混进客户包，必要时同步更新排除清单。
+- 生成物只进 `out\`（构建树 `out\build\`、安装 `out\install\`）；库产物不再写源码树 `lib\`，
+  由 `deploy.bat` 从构建树汇总进 `out\install\x64-<配置>\lib`，不要改回 `cmake --install`
+  （会连带执行 CPM 依赖的 install 规则污染安装目录）。打包脚本排除 `out/`、`lib/`、`.git*`、`.github/`、`.codebuddy/`、`docs/html`、`scripts/ci`、`scripts/wsl`、`git_pull_latest.bat`、`release.bat`、`AGENTS.md`、`CMakeUserPresets.json`。新增内部脚本或 README 章节时，先确认不会混进客户包，必要时同步更新排除清单。
 - 改完至少各冒烟一次 cmd 与 sh 两条分支；`scripts\test.bat` 要真在 cmd 里跑一次，才能覆盖深层子脚本的 CRLF/chcp 解析。
 
 ## 七、已废弃入口

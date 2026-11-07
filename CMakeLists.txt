@@ -184,18 +184,15 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES
   ${PROJECT_SOURCES} ${PROJECT_HEADERS}
 )
 
-# Output to ./lib/Debug and ./lib/Release
+# ── 产物位置 ────────────────────────────────────────────────────────────────
+# 库产物留在构建树（多配置生成器在 <构建树>\<配置>\，单配置在构建树根），
+# 不再向源码树写 lib\；scripts\deploy.bat 从构建树把 MotionGloveUI 汇总进
+# out\install\x64-<配置>。刻意不写 install() 规则：cmake --install 会连带执行
+# CPM 依赖自己的 install 规则，把上游头文件/静态库也装进来污染 out\install。
 set_target_properties(${PROJECT_NAME} PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib"
-  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib"
-  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib"
-  RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/lib/Debug"
-  LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/lib/Debug"
-  ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/lib/Debug"
-  RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/lib/Release"
-  LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/lib/Release"
-  ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/lib/Release"
-)
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>"
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>"
+  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>")
 
 # Exposed headers: ./include and project root
 # Internal headers: ./inc
