@@ -19,14 +19,41 @@
 #include <QtCore/QMetaObject>
 #include <QtCore/QMetaMethod>
 #include <QtCore/QCoreApplication>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QGridLayout>
 
 h2SettingsDialog::h2SettingsDialog(QWidget *parent)
-	: QDialog(parent)
+	: CarbonUIDialog(tr("设置 / Settings"), parent)
 {
+	// 设置弹窗统一使用 CarbonUIDialog 外壳：原 .ui 的页签与按钮区装进外壳 body。
+	auto* body = findChild<QWidget*>(QStringLiteral("CarbonUIDialogBody"));
+	auto* content = new QWidget(body);
 	ui = new Ui::h2SettingsDialog();
-	ui->setupUi(this);
-
-	setStyleSheet("background-color: #3b3b3b; ");
+	ui->setupUi(content);
+	if (auto* bodyLayout = qobject_cast<QVBoxLayout*>(body->layout()))
+	{
+		bodyLayout->setContentsMargins(0, 0, 0, 0);
+		bodyLayout->setSpacing(0);
+		bodyLayout->addWidget(content, 1);
+	}
+	// 主控件铺满页面：去掉 .ui 根布局的上下左右空白。
+	if (auto* gridLayout = qobject_cast<QGridLayout*>(content->layout()))
+	{
+		gridLayout->setContentsMargins(0, 0, 0, 0);
+		gridLayout->setSpacing(0);
+	}
+	// 滚动条统一使用 CarbonUI 样式（CarbonUIQScrollArea::applyStyle 同款：
+	// 4px 宽、透明槽、#cdcdcd 圆角滑块、无箭头/翻页），覆盖页签内所有 QScrollBar。
+	content->setStyleSheet(QStringLiteral(
+		"QScrollBar:vertical { width: 4px; background: transparent; margin: 0px; }"
+		"QScrollBar::handle:vertical { background: #cdcdcd; min-height: 20px; border-radius: 4px; }"
+		"QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; }"
+		"QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: none; }"
+		"QScrollBar:horizontal { height: 4px; background: transparent; margin: 0px; }"
+		"QScrollBar::handle:horizontal { background: #cdcdcd; min-width: 20px; border-radius: 4px; }"
+		"QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0px; }"
+		"QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { background: none; }"));
+	resize(560, 720);
 
 	CarbonUIQTabWidget::applyStyle(ui->tabWidget);
 	CarbonUIQPushButton::applyStyle(ui->PB_OK, CarbonUIQPushButton::Shape_RoundAll);
@@ -35,16 +62,20 @@ h2SettingsDialog::h2SettingsDialog(QWidget *parent)
 
 	{
 		m_netBroadcastWidget = new h2NetBroadcastWidget(this);
-		QWidget *tabWidget = new QWidget(); 
-		QVBoxLayout *vLayout = new QVBoxLayout(tabWidget); 
+		QWidget *tabWidget = new QWidget();
+		QVBoxLayout *vLayout = new QVBoxLayout(tabWidget);
+		vLayout->setContentsMargins(0, 0, 0, 0);
+		vLayout->setSpacing(0);
 		vLayout->addWidget(m_netBroadcastWidget);
 		ui->tabWidget->addTab(tabWidget, tr("Data Forwarding / 数据转发"));
 
 	}
 	{
 		m_streamFormatWidget = new h2StreamConfigWidget(this);
-		QWidget *tabWidget = new QWidget(); 
-		QVBoxLayout *vLayout = new QVBoxLayout(tabWidget); 
+		QWidget *tabWidget = new QWidget();
+		QVBoxLayout *vLayout = new QVBoxLayout(tabWidget);
+		vLayout->setContentsMargins(0, 0, 0, 0);
+		vLayout->setSpacing(0);
 		vLayout->addWidget(m_streamFormatWidget);
 		ui->tabWidget->addTab(tabWidget, tr("Data Format / 转发格式"));
 	}
@@ -110,9 +141,9 @@ void h2SettingsDialog::on_PB_OK_clicked()
 
 void h2SettingsDialog::retranslateUI()
 {
-	// Update window title with current language
+	// CarbonUIDialog 自带标题栏，用 setTitleText 更新标题
 	if (this) {
-		setWindowTitle(tr("设置 / Settings"));
+		setTitleText(tr("设置 / Settings"));
 	}
 	
 	// Update button texts with current language

@@ -13,6 +13,7 @@
 
 #include "libh2ui_global.h"
 
+#include "CarbonUIDialog.h"
 #include <QtWidgets/QDialog>
 #include <QtGui/QCloseEvent>
 
@@ -23,13 +24,14 @@ class h2StreamConfigWidget;
 /**
  * @brief 设置对话框：用页签承载「数据转发」与「转发格式」两块配置。
  *
- * @details 打开时创建两个内嵌配置控件并挂到页签上，点「确定」时
- *          把两者的内容一起写回 MotionGloveLLSDK 的流配置，
+ * @details 外壳继承 CarbonUIDialog（深色无边框标题栏，帮助/设置弹窗统一样式），
+ *          原 .ui 的页签与按钮区嵌入其正文；打开时创建两个内嵌配置控件并挂到页签上，
+ *          点「确定」时把两者的内容一起写回 MotionGloveLLSDK 的流配置，
  *          点「取消」或直接关闭窗口则丢弃。
  *
  * 只在 UI 线程使用；关闭时会主动释放内嵌控件。
  */
-class LIBH2UI_API h2SettingsDialog : public QDialog
+class LIBH2UI_API h2SettingsDialog : public CarbonUIDialog
 {
 	Q_OBJECT
 
