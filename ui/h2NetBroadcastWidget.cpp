@@ -20,6 +20,10 @@
 #include <QtCore/QCoreApplication>
 
 #include "CarbonUIClass.h"
+#include "CarbonUIQPushButton.h"
+#include "CarbonUIQLineEdit.h"
+#include "CarbonUIQComboBox.h"
+#include "CarbonUIQTreeWidget.h"
 #include "groupboxcollapser.h"
 
 #include "h2sdk.h"
@@ -34,11 +38,11 @@ h2NetBroadcastWidget::h2NetBroadcastWidget(QWidget *parent)
 	// set all labels to white
 	CarbonUIClass::setWidgetLabelsStyleRecursively(this);
 
-	CarbonUIClass::applyButtonStyle(ui.addAddrBtn, CarbonUIClass::Shape_RoundAll);
-	CarbonUIClass::applyLineEditStyle_numberInput(ui.portLineEdit, 100);
-	CarbonUIClass::setupComboBoxStyle(ui.CBX_IPAddress);
-	CarbonUIClass::setupComboBoxStyle(ui.CBX_txFramerate);
-	CarbonUIClass::applyTreeWidgetStyle(ui.IPPortListWidget);
+	CarbonUIQPushButton::applyStyle(ui.addAddrBtn, CarbonUIQPushButton::Shape_RoundAll);
+	CarbonUIQLineEdit::applyStyle(ui.portLineEdit, 100);
+	CarbonUIQComboBox::applyStyle(ui.CBX_IPAddress);
+	CarbonUIQComboBox::applyStyle(ui.CBX_txFramerate);
+	CarbonUIQTreeWidget::applyStyle(ui.IPPortListWidget);
 
 	
 
@@ -192,7 +196,7 @@ void h2NetBroadcastWidget::addIPPortRow(const QString &ip, const QString &port)
 	ui.IPPortListWidget->addTopLevelItem(rowItem);
 
 	QPushButton *btnDelete = new QPushButton(tr("删除 / Delete"), ui.IPPortListWidget);
-	CarbonUIClass::applyButtonStyle(btnDelete, CarbonUIClass::Shape_RoundAll);
+	CarbonUIQPushButton::applyStyle(btnDelete, CarbonUIQPushButton::Shape_RoundAll);
 
 	// set button height to be 2 pixels smaller than the row/container height
 	int idx = ui.IPPortListWidget->indexOfTopLevelItem(rowItem);

@@ -39,7 +39,9 @@
 #include "../inc/h2GloveSepMgr.h"
 #include <QButtonGroup>
 
-#include "CarbonUIClass.h"
+#include "CarbonUIQScrollArea.h"
+#include "CarbonUIQTabWidget.h"
+#include "CarbonUIQRadioButton.h"
 #include "groupboxcollapser.h"
 
 #ifdef _WIN32
@@ -462,10 +464,10 @@ void clearLayout(QLayout* layout)
 void h2Widget::initUI()
 {
 	ui->TW_main->setCurrentWidget(ui->TW_main->widget(0)); // set first tab as default
-	CarbonUIClass::applyScrollAreaStyle(ui->scrollArea);
-	CarbonUIClass::applyScrollAreaStyle(ui->scrollArea_2);
+	CarbonUIQScrollArea::applyStyle(ui->scrollArea);
+	CarbonUIQScrollArea::applyStyle(ui->scrollArea_2);
 
-	CarbonUIClass::setupTabWidgetStyle(ui->TW_main);
+	CarbonUIQTabWidget::applyStyle(ui->TW_main);
 	QGroupBoxCollapser::installIntoGroupBox(ui->GBX_FR, 0, true);
 
 
@@ -567,9 +569,9 @@ void h2Widget::initUI()
 	ui->HL_gloveGestureDisplay->addWidget(WIG_h2GestureDisplay_RH);
 	
 
-	CarbonUIClass::applyRadioStyle(ui->RB_freeMode, CarbonUIClass::Radio_LeftRound, 64+16);
-	CarbonUIClass::applyRadioStyle(ui->RB_lockMode, CarbonUIClass::Radio_Rectangle, 64+16);
-	CarbonUIClass::applyRadioStyle(ui->RB_mixMode, CarbonUIClass::Radio_RightRound, 64+16);
+	CarbonUIQRadioButton::applyStyle(ui->RB_freeMode, CarbonUIQRadioButton::Radio_LeftRound, 64+16);
+	CarbonUIQRadioButton::applyStyle(ui->RB_lockMode, CarbonUIQRadioButton::Radio_Rectangle, 64+16);
+	CarbonUIQRadioButton::applyStyle(ui->RB_mixMode, CarbonUIQRadioButton::Radio_RightRound, 64+16);
 	// Create a button group for capture mode radio buttons so they are mutually exclusive
 	QButtonGroup* capModeGroup = new QButtonGroup(this);
 	// If the UI has these radio buttons, add them to the group with explicit ids

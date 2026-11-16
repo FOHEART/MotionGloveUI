@@ -15,6 +15,9 @@
 #include "ui_h2StreamConfigWidget.h"
 
 #include "CarbonUIClass.h"
+#include "CarbonUIQScrollArea.h"
+#include "CarbonUIQCheckBox.h"
+#include "CarbonUIQRadioButton.h"
 #include "groupboxcollapser.h"
 #include <QtCore/QMetaObject>
 #include <QtCore/QCoreApplication>
@@ -27,7 +30,7 @@ h2StreamConfigWidget::h2StreamConfigWidget(QWidget* parent)
 	ui->setupUi(this);
 
 	CarbonUIClass::setWidgetLabelsStyleRecursively(this);
-	CarbonUIClass::applyScrollAreaStyle(ui->scrollArea);
+	CarbonUIQScrollArea::applyStyle(ui->scrollArea);
 
 	QGroupBoxCollapser::installIntoGroupBox(ui->GBX_stream, 0, true);
 	QGroupBoxCollapser::installIntoGroupBox(ui->GBX_frame, 0, true);
@@ -39,37 +42,37 @@ h2StreamConfigWidget::h2StreamConfigWidget(QWidget* parent)
 	QGroupBoxCollapser::installIntoGroupBox(ui->GBX_sensor, 0, true);
 	QGroupBoxCollapser::installIntoGroupBox(ui->GBX_rotOrder, 0, true);
 
-	CarbonUIClass::applyCheckStyle(ui->CBX_jumboFrame);
+	CarbonUIQCheckBox::applyStyle(ui->CBX_jumboFrame);
 
-	CarbonUIClass::applyCheckStyle(ui->CBX_displacement);
+	CarbonUIQCheckBox::applyStyle(ui->CBX_displacement);
 	
 		
 	
 
-	CarbonUIClass::applyRadioStyle(ui->RB_binary, CarbonUIClass::Radio_LeftRound, 64);
-	//CarbonUIClass::applyRadioStyle(ui->RB_lockMode, CarbonUIClass::Radio_Rectangle, 64);
-	CarbonUIClass::applyRadioStyle(ui->RB_string, CarbonUIClass::Radio_RightRound, 64);
+	CarbonUIQRadioButton::applyStyle(ui->RB_binary, CarbonUIQRadioButton::Radio_LeftRound, 64);
+	//CarbonUIQRadioButton::applyStyle(ui->RB_lockMode, CarbonUIQRadioButton::Radio_Rectangle, 64);
+	CarbonUIQRadioButton::applyStyle(ui->RB_string, CarbonUIQRadioButton::Radio_RightRound, 64);
 
-	CarbonUIClass::applyRadioStyle(ui->RB_skeleton32, CarbonUIClass::Radio_LeftRound, 96);
-	CarbonUIClass::applyRadioStyle(ui->RB_skeleton42, CarbonUIClass::Radio_Rectangle, 96);
-	CarbonUIClass::applyRadioStyle(ui->RB_skeletonOpenXR, CarbonUIClass::Radio_RightRound, 96);
+	CarbonUIQRadioButton::applyStyle(ui->RB_skeleton32, CarbonUIQRadioButton::Radio_LeftRound, 96);
+	CarbonUIQRadioButton::applyStyle(ui->RB_skeleton42, CarbonUIQRadioButton::Radio_Rectangle, 96);
+	CarbonUIQRadioButton::applyStyle(ui->RB_skeletonOpenXR, CarbonUIQRadioButton::Radio_RightRound, 96);
 
-	CarbonUIClass::applyRadioStyle(ui->RB_skeletonQuat, CarbonUIClass::Radio_LeftRound, 64);
-	CarbonUIClass::applyRadioStyle(ui->RB_skeletonEuler, CarbonUIClass::Radio_RightRound, 64);
+	CarbonUIQRadioButton::applyStyle(ui->RB_skeletonQuat, CarbonUIQRadioButton::Radio_LeftRound, 64);
+	CarbonUIQRadioButton::applyStyle(ui->RB_skeletonEuler, CarbonUIQRadioButton::Radio_RightRound, 64);
 	
-	CarbonUIClass::applyRadioStyle(ui->RB_skeletonLocalCoord, CarbonUIClass::Radio_LeftRound, 64);
-	CarbonUIClass::applyRadioStyle(ui->RB_skeletonGlobalCoord, CarbonUIClass::Radio_RightRound, 64);
+	CarbonUIQRadioButton::applyStyle(ui->RB_skeletonLocalCoord, CarbonUIQRadioButton::Radio_LeftRound, 64);
+	CarbonUIQRadioButton::applyStyle(ui->RB_skeletonGlobalCoord, CarbonUIQRadioButton::Radio_RightRound, 64);
 
-	CarbonUIClass::applyRadioStyle(ui->RB_rtSensorOff, CarbonUIClass::Radio_LeftRound, 64);
-	CarbonUIClass::applyRadioStyle(ui->RB_rtSensorQuat, CarbonUIClass::Radio_Rectangle, 64);
-	CarbonUIClass::applyRadioStyle(ui->RB_rtSensorEuler, CarbonUIClass::Radio_RightRound, 64);
+	CarbonUIQRadioButton::applyStyle(ui->RB_rtSensorOff, CarbonUIQRadioButton::Radio_LeftRound, 64);
+	CarbonUIQRadioButton::applyStyle(ui->RB_rtSensorQuat, CarbonUIQRadioButton::Radio_Rectangle, 64);
+	CarbonUIQRadioButton::applyStyle(ui->RB_rtSensorEuler, CarbonUIQRadioButton::Radio_RightRound, 64);
 
-	CarbonUIClass::applyRadioStyle(ui->RB_xyz, CarbonUIClass::Radio_LeftRound, 64);
-	CarbonUIClass::applyRadioStyle(ui->RB_xzy, CarbonUIClass::Radio_Rectangle, 64);
-	CarbonUIClass::applyRadioStyle(ui->RB_yxz, CarbonUIClass::Radio_Rectangle, 64);
-	CarbonUIClass::applyRadioStyle(ui->RB_yzx, CarbonUIClass::Radio_Rectangle, 64);
-	CarbonUIClass::applyRadioStyle(ui->RB_zxy, CarbonUIClass::Radio_Rectangle, 64);
-	CarbonUIClass::applyRadioStyle(ui->RB_zyx, CarbonUIClass::Radio_RightRound, 64);
+	CarbonUIQRadioButton::applyStyle(ui->RB_xyz, CarbonUIQRadioButton::Radio_LeftRound, 64);
+	CarbonUIQRadioButton::applyStyle(ui->RB_xzy, CarbonUIQRadioButton::Radio_Rectangle, 64);
+	CarbonUIQRadioButton::applyStyle(ui->RB_yxz, CarbonUIQRadioButton::Radio_Rectangle, 64);
+	CarbonUIQRadioButton::applyStyle(ui->RB_yzx, CarbonUIQRadioButton::Radio_Rectangle, 64);
+	CarbonUIQRadioButton::applyStyle(ui->RB_zxy, CarbonUIQRadioButton::Radio_Rectangle, 64);
+	CarbonUIQRadioButton::applyStyle(ui->RB_zyx, CarbonUIQRadioButton::Radio_RightRound, 64);
 
 	updateUIFromConfig();
 	

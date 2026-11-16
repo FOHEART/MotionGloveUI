@@ -13,6 +13,7 @@
 #pragma execution_character_set("utf-8")
 #include "h2FingerAdjustLockYawWidget.h"
 #include "CarbonUIClass.h"
+#include "CarbonUIQPushButton.h"
 #include "groupboxcollapser.h"
 #include <QLocale>
 
@@ -38,8 +39,8 @@ h2FingerAdjustLockYawWidget::h2FingerAdjustLockYawWidget(QWidget* parent)
 	ui.HS_thumbFigureAngleY->installEventFilter(this);
 	ui.HS_thumbFigureAngleZ->installEventFilter(this);
 
-	CarbonUIClass::applyButtonStyle(ui.PB_rotResetLockYaw, CarbonUIClass::Shape_RoundAll);
-	CarbonUIClass::applyButtonStyle(ui.PB_rotResetLockYaw_undo, CarbonUIClass::Shape_RoundAll);
+	CarbonUIQPushButton::applyStyle(ui.PB_rotResetLockYaw, CarbonUIQPushButton::Shape_RoundAll);
+	CarbonUIQPushButton::applyStyle(ui.PB_rotResetLockYaw_undo, CarbonUIQPushButton::Shape_RoundAll);
 
 	setIsEnable(false);
 

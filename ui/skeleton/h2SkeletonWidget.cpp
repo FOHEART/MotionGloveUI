@@ -14,7 +14,7 @@
 #include <QStandardItemModel>
 #include <QAbstractItemView>
 #include <QDebug>
-#include "CarbonUIClass.h"
+#include "CarbonUIQTreeView.h"
 
 h2SkeletonWidget::h2SkeletonWidget(QWidget *parent)
     : QWidget(parent)
@@ -31,7 +31,7 @@ void h2SkeletonWidget::applyStylesheet()
 {
     // Set background and text color
     this->setStyleSheet("background-color: #3b3b3b; color: white;");
-	CarbonUIClass::applyTreeViewStyle(ui.treeView);
+	CarbonUIQTreeView::applyStyle(ui.treeView);
 }
 
 void h2SkeletonWidget::populateSkeletonTree()

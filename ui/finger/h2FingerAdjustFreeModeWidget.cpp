@@ -13,6 +13,7 @@
 #pragma execution_character_set("utf-8")
 #include "h2FingerAdjustFreeModeWidget.h"
 #include "CarbonUIClass.h"
+#include "CarbonUIQPushButton.h"
 #include "groupboxcollapser.h"
 #include <QLocale>
 #ifdef _WIN32
@@ -35,10 +36,10 @@ h2FingerAdjustFreeModeWidget::h2FingerAdjustFreeModeWidget(QWidget* parent)
 	ui.HS_thumbFigureAngleY->installEventFilter(this);
 	ui.HS_thumbFigureAngleZ->installEventFilter(this);
 
-	CarbonUIClass::applyButtonStyle(ui.PB_rotResetFingerFreeMode, CarbonUIClass::Shape_RoundAll);
-	CarbonUIClass::applyButtonStyle(ui.PB_rotResetFingerFreeMode_undo, CarbonUIClass::Shape_RoundAll);
-	CarbonUIClass::applyButtonStyle(ui.PB_rotResetHandFreeMode, CarbonUIClass::Shape_RoundAll);
-	CarbonUIClass::applyButtonStyle(ui.PB_rotResetHandFreeMode_undo, CarbonUIClass::Shape_RoundAll);
+	CarbonUIQPushButton::applyStyle(ui.PB_rotResetFingerFreeMode, CarbonUIQPushButton::Shape_RoundAll);
+	CarbonUIQPushButton::applyStyle(ui.PB_rotResetFingerFreeMode_undo, CarbonUIQPushButton::Shape_RoundAll);
+	CarbonUIQPushButton::applyStyle(ui.PB_rotResetHandFreeMode, CarbonUIQPushButton::Shape_RoundAll);
+	CarbonUIQPushButton::applyStyle(ui.PB_rotResetHandFreeMode_undo, CarbonUIQPushButton::Shape_RoundAll);
 
 	
 		

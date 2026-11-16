@@ -20,6 +20,8 @@
 #include <QStringList>
 #include <QUrl>
 #include "CarbonUIClass.h"
+#include "CarbonUIQPushButton.h"
+#include "CarbonUIQLineEdit.h"
 #include "core/h2TextWrap.h"
 
 h2CsvRecord::h2CsvRecord(QWidget *parent)
@@ -28,12 +30,12 @@ h2CsvRecord::h2CsvRecord(QWidget *parent)
 	ui.setupUi(this);
 	{
 		CarbonUIClass::setWidgetLabelsStyleRecursively(this);
-		CarbonUIClass::applyButtonStyle(ui.PB_setCsvRecordDir, CarbonUIClass::Shape_RoundAll);
-		CarbonUIClass::applyButtonStyle(ui.PB_startRecord, CarbonUIClass::Shape_RoundAll);
-		CarbonUIClass::applyButtonStyle(ui.PB_stopRecord, CarbonUIClass::Shape_RoundAll);
-		CarbonUIClass::applyButtonStyle(ui.PB_openFileDir, CarbonUIClass::Shape_RoundAll);
+		CarbonUIQPushButton::applyStyle(ui.PB_setCsvRecordDir, CarbonUIQPushButton::Shape_RoundAll);
+		CarbonUIQPushButton::applyStyle(ui.PB_startRecord, CarbonUIQPushButton::Shape_RoundAll);
+		CarbonUIQPushButton::applyStyle(ui.PB_stopRecord, CarbonUIQPushButton::Shape_RoundAll);
+		CarbonUIQPushButton::applyStyle(ui.PB_openFileDir, CarbonUIQPushButton::Shape_RoundAll);
 
-		CarbonUIClass::applyLineEditStyle_numberInput(ui.LE_csvRecordDir, 250);
+		CarbonUIQLineEdit::applyStyle(ui.LE_csvRecordDir, 250);
 	}
 	ui.LBL_fileName->setWordWrap(true);
 	ui.LBL_fileName->setAlignment(Qt::AlignLeft | Qt::AlignTop);

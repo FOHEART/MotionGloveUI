@@ -13,7 +13,8 @@
 #include "ui_h2SettingsDialog.h"
 #include "h2NetBroadcastWidget.h"
 #include "../include/h2StreamConfigWidget.h"
-#include "CarbonUIClass.h"
+#include "CarbonUIQTabWidget.h"
+#include "CarbonUIQPushButton.h"
 #include "groupboxcollapser.h"
 #include <QtCore/QMetaObject>
 #include <QtCore/QMetaMethod>
@@ -27,9 +28,9 @@ h2SettingsDialog::h2SettingsDialog(QWidget *parent)
 
 	setStyleSheet("background-color: #3b3b3b; ");
 
-	CarbonUIClass::setupTabWidgetStyle(ui->tabWidget);
-	CarbonUIClass::applyButtonStyle(ui->PB_OK, CarbonUIClass::Shape_RoundAll);
-	CarbonUIClass::applyButtonStyle(ui->PB_Cancle, CarbonUIClass::Shape_RoundAll);
+	CarbonUIQTabWidget::applyStyle(ui->tabWidget);
+	CarbonUIQPushButton::applyStyle(ui->PB_OK, CarbonUIQPushButton::Shape_RoundAll);
+	CarbonUIQPushButton::applyStyle(ui->PB_Cancle, CarbonUIQPushButton::Shape_RoundAll);
 
 
 	{
